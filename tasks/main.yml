@@ -29,10 +29,6 @@
     path: "{{ sshd_config }}"
   register: config_file
 
-- name: "Show sshd_config SHA256 Sum"
-  debug:
-    var: config_file.stat.checksum
-
 - name: "Deploy default SSH configuration file"
   block:
     - name: "Deploy original SSH configuration file (RHEL7)"
