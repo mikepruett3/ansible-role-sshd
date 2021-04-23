@@ -24,6 +24,23 @@
       args:
         creates: /etc/ssh/ssh_host_ecdsa_key
 
+- name: "Collect SHA256 hash of sshd_config file"
+  stat:
+    path: "{{ sshd_config }}"
+  register: config_file
+
+- name: "Show sshd_config SHA256 Sum"
+  debug:
+    var: config_file.stat.checksum
+
+- name: "Deploy default SSH configuration file"
+  block:
+    - name: "Deploy original SSH configuration file (RHEL7)"
+      template:
+        src: sshd_config_rhel7.j2
+        dest: "{{ sshd_config }}"
+      when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7' and config_file.stat.checksum != "86eb7bfb84dfe487161ac349fbea02a9c2c80de4e7bb9ca4148568924723a4b5"
+
 - name: "Update SSH configuration to be more secure"
   lineinfile:
     dest: "{{ sshd_config }}"
@@ -74,13 +91,13 @@
   block:
     - name: "Configure Console Login Banner"
       template:
-          src: issue.j2
-          dest: "{{ banner_console }}"
+        src: issue.j2
+        dest: "{{ banner_console }}"
 
     - name: "Configure Remote Login Banner"
       template:
-          src: issue.j2
-          dest: "{{ banner_remote }}"
+        src: issue.j2
+        dest: "{{ banner_remote }}"
 
     - name: "Update SSH configuration to include Login Banners"
       lineinfile:
