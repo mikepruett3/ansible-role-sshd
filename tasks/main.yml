@@ -82,4 +82,5 @@
         state: present
         validate: 'sshd -T -f %s'
         mode: 0644
+  notify: "Restart SSH Daemon"
   when: issue_template.stat.exists
