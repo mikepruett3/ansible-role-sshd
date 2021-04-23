@@ -29,7 +29,7 @@
     path: "{{ sshd_config }}"
   register: config_file
 
-- name: "Deploy default SSH configuration file"
+- name: "Deploy original SSH configuration file"
   block:
     - name: "Deploy original SSH configuration file (RHEL7)"
       template:
