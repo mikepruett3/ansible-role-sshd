@@ -1,12 +1,18 @@
 ---
 password_authentication: "no"
+public_key_authentication: "yes"
 permit_root_login: "no"
+
 ssh_port: 22
-ssh_usedns: "no"
+use_dns: "no"
+ignore_rhosts: "yes"
+
 permit_empty_password: "no"
 challenge_response_auth: "no"
+
 gss_api_authentication: "no"
 x11_forwarding: "no"
+
 client_alive_int: "300"
 client_alive_max: "0"
 
