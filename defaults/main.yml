@@ -7,3 +7,8 @@ permit_empty_password: "no"
 challenge_response_auth: "no"
 gss_api_authentication: "no"
 x11_forwarding: "no"
+client_alive_int: "300"
+client_alive_max: "0"
+
+banner_console: "/etc/issue"
+banner_remote: "/etc/issue.net"

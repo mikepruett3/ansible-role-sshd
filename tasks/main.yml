@@ -32,7 +32,7 @@
     state: present
     validate: 'sshd -T -f %s'
     mode: 0644
-    backup: yes
+    #backup: yes
   with_items:
     - regexp: "^PasswordAuthentication"
       line: "PasswordAuthentication {{ password_authentication }}"
@@ -50,6 +50,10 @@
       line: "GSSAPIAuthentication {{ gss_api_authentication }}"
     - regexp: "^X11Forwarding"
       line: "X11Forwarding {{ x11_forwarding }}"
+    - regexp: "^ClientAliveInterval"
+      line: "ClientAliveInterval {{ client_alive_int }}"
+    - regexp: "^ClientAliveCountMax"
+      line: "ClientAliveCountMax {{ client_alive_max }}"
   notify: "Restart SSH Daemon"
 
 - name: "Check for issue.j2 template file"
@@ -63,10 +67,19 @@
     - name: "Configure Console Login Banner"
       template:
           src: issue.j2
-          dest: /etc/issue
+          dest: "{{ banner_console }}"
 
     - name: "Configure Remote Login Banner"
       template:
           src: issue.j2
-          dest: /etc/issue.net
+          dest: "{{ banner_remote }}"
+
+    - name: "Update SSH configuration to be more secure"
+      lineinfile:
+        dest: "{{ sshd_config }}"
+        regexp: "^Banner"
+        line: "Banner {{ banner_remote }}"
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
   when: issue_template.stat.exists
