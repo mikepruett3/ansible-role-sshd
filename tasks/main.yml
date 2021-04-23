@@ -78,7 +78,7 @@
           src: issue.j2
           dest: "{{ banner_remote }}"
 
-    - name: "Update SSH configuration to be more secure"
+    - name: "Update SSH configuration to include Login Banners"
       lineinfile:
         dest: "{{ sshd_config }}"
         regexp: "^Banner"
