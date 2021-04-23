@@ -58,7 +58,7 @@
 
 - name: "Check for issue.j2 template file"
   stat:
-    path: template/issue.j2
+    path: "{{ role_path }}/templates/issue.j2"
   delegate_to: localhost
   register: issue_template
 
