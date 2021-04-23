@@ -13,8 +13,11 @@ challenge_response_auth: "no"
 gss_api_authentication: "no"
 x11_forwarding: "no"
 
-client_alive_int: "300"
-client_alive_max: "0"
+client_alive_int: "3600"
+client_alive_max: "3"
+
+login_grace_time: "1m"
+max_auth_tries: "4"
 
 banner_console: "/etc/issue"
 banner_remote: "/etc/issue.net"

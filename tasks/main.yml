@@ -58,6 +58,10 @@
       line: "ClientAliveInterval {{ client_alive_int }}"
     - regexp: "^ClientAliveCountMax"
       line: "ClientAliveCountMax {{ client_alive_max }}"
+    - regexp: "^LoginGraceTime"
+      line: "LoginGraceTime {{ login_grace_time }}"
+    - regexp: "^MaxAuthTries"
+      line: "MaxAuthTries {{ max_auth_tries }}"
   notify: "Restart SSH Daemon"
 
 - name: "Check for issue.j2 template file"
