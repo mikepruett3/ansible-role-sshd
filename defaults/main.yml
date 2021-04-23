@@ -1,2 +1,9 @@
 ---
-# defaults file for ansible-role-sshd
+password_authentication: "no"
+permit_root_login: "no"
+ssh_port: 22
+ssh_usedns: "no"
+permit_empty_password: "no"
+challenge_response_auth: "no"
+gss_api_authentication: "no"
+x11_forwarding: "no"

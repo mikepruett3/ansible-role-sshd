@@ -1,2 +1,72 @@
 ---
-# tasks file for ansible-role-sshd
+- name: "Include OS-specific variables"
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: "Ensure SSH daemon is running"
+  service:
+    name: "{{ ssh_daemon }}"
+    state: started
+
+- name: "Generate Host keys"
+  block:
+    - name: "Generating RSA host key"
+      command: ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
+      args:
+        creates: /etc/ssh/ssh_host_rsa_key
+
+    - name: "Generating DSA host key"
+      command: ssh-keygen -q -t dsa -f /etc/ssh/ssh_host_dsa_key -C "" -N ""
+      args:
+        creates: /etc/ssh/ssh_host_dsa_key
+
+    - name: "Generating ECDSA host key"
+      command: ssh-keygen -q -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -C "" -N ""
+      args:
+        creates: /etc/ssh/ssh_host_ecdsa_key
+
+- name: "Update SSH configuration to be more secure"
+  lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0644
+    backup: yes
+  with_items:
+    - regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication {{ password_authentication }}"
+    - regexp: "^PermitRootLogin"
+      line: "PermitRootLogin {{ permit_root_login }}"
+    - regexp: "^Port"
+      line: "Port {{ ssh_port }}"
+    - regexp: "^UseDNS"
+      line: "UseDNS {{ ssh_usedns }}"
+    - regexp: "^PermitEmptyPasswords"
+      line: "PermitEmptyPasswords {{ permit_empty_password }}"
+    - regexp: "^ChallengeResponseAuthentication"
+      line: "ChallengeResponseAuthentication {{ challenge_response_auth }}"
+    - regexp: "^GSSAPIAuthentication"
+      line: "GSSAPIAuthentication {{ gss_api_authentication }}"
+    - regexp: "^X11Forwarding"
+      line: "X11Forwarding {{ x11_forwarding }}"
+  notify: "Restart SSH Daemon"
+
+- name: "Check for issue.j2 template file"
+  stat:
+    path: template/issue.j2
+  delegate_to: localhost
+  register: issue_template
+
+- name: "Configure Login Banners"
+  block:
+    - name: "Configure Console Login Banner"
+      template:
+          src: issue.j2
+          dest: /etc/issue
+
+    - name: "Configure Remote Login Banner"
+      template:
+          src: issue.j2
+          dest: /etc/issue.net
+  when: issue_template.stat.exists
