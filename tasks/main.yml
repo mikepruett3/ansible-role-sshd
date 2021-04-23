@@ -36,7 +36,13 @@
         src: sshd_config_rhel7.j2
         dest: "{{ sshd_config }}"
       notify: "Restart SSH Daemon"
-      when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7' and config_file.stat.checksum != "86eb7bfb84dfe487161ac349fbea02a9c2c80de4e7bb9ca4148568924723a4b5"
+      when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7' and config_file.stat.checksum != "86eb7bfb84dfe487161ac349fbea02a9c2c80de4e7bb9ca4148568924723a4b5"
+    - name: "Deploy original SSH configuration file (RHEL8)"
+      template:
+        src: sshd_config_rhel8.j2
+        dest: "{{ sshd_config }}"
+      notify: "Restart SSH Daemon"
+      when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8' and config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
 
 - name: "Update SSH configuration to be more secure"
   lineinfile:
