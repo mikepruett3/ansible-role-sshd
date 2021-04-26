@@ -31,6 +31,12 @@
 
 - name: "Deploy original SSH configuration file"
   block:
+    - name: "Deploy original SSH configuration file (RHEL6)"
+      template:
+        src: sshd_config_rhel6.j2
+        dest: "{{ sshd_config }}"
+      notify: "Restart SSH Daemon"
+      when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and config_file.stat.checksum != "9ae0b14da869aa6d9b52442f85c96e86450b521a93c52c256f6660e683ad5ff7"
     - name: "Deploy original SSH configuration file (RHEL7)"
       template:
         src: sshd_config_rhel7.j2
@@ -144,3 +150,11 @@
     - regexp: "^MACs"
       line: "MACs {{ macs }}"
   notify: "Restart SSH Daemon"
+
+#- name: "Add group to AllowedGroups in SSH configuration"
+#  block:
+#    - name: "Check for groups existence"
+#      group:
+#        name: "{{ ssh_group }}"
+#        state: present
+        
