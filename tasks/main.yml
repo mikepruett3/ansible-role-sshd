@@ -125,7 +125,7 @@
       set_fact:
         kex_algorithms: "diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1"
         ciphers: "aes128-ctr,aes192-ctr,aes256-ctr"
-        macs: "hmac-ripemd160,hmac-ripemd160-etm@openssh.com,hmac-sha2-256,hmac-sha2-512"
+        macs: "hmac-ripemd160,hmac-ripemd160@openssh.com,hmac-sha2-256,hmac-sha2-512"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'
     - name: "Define KexAlgorithms, Ciphers & MAC's (RHEL 7)"
       set_fact:
