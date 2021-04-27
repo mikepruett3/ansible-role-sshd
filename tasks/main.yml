@@ -2,6 +2,11 @@
 - name: "Include OS-specific variables"
   include_vars: "{{ ansible_os_family }}.yml"
 
+- name: "Update SSH daemon"
+  package:
+    name: "{{ ssh_package }}"
+    state: latest
+
 - name: "Ensure SSH daemon is running"
   service:
     name: "{{ ssh_daemon }}"
