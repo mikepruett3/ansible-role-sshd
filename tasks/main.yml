@@ -144,16 +144,6 @@
       line: "Subsystem	sftp	/usr/libexec/openssh/sftp-server -f AUTHPRIV -l INFO"
   notify: "Restart SSH Daemon"
 
-- name: "Configure PrivilegeSeparation in SSH configuration (RHEL7+)"
-  lineinfile:
-    dest: "{{ sshd_config }}"
-    regexp: "^UsePrivilegeSeparation"
-    line: "UsePrivilegeSeparation sandbox"
-    state: present
-    validate: 'sshd -T -f %s'
-    mode: 0644
-  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7'
-
 - name: "Check for issue.j2 template file"
   stat:
     path: "{{ role_path }}/templates/issue.j2"
