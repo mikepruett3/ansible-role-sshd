@@ -67,7 +67,7 @@
         dest: "{{ sshd_config }}"
       notify: "Restart SSH Daemon"
       #when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8' and config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
-      when: ssh_version >= "6.7" and config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
+      when: ssh_version >= 6.7 and config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
 
 - name: "Change order of HostKeys in SSH configuration (RHEL7+)"
   block:
