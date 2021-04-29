@@ -32,7 +32,7 @@
     - name: "Generating ED25519 host key"
       command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
       args:
-        creates: /etc/ssh/ssh_host_ecdsa_key
+        creates: /etc/ssh/ssh_host_ed25519_key
 
 - name: "Collect SHA256 hash of sshd_config file"
   stat:
