@@ -83,7 +83,7 @@
         state: present
         validate: 'sshd -T -f %s'
         mode: 0644
-  when: ansible_facts.packages['openssh'].version >= "6.7"
+  when: ansible_facts.packages['openssh'][0].version >= "6.7"
 
 - name: "Enable RSA & ECDSA HostKeys in SSH configuration (RHEL6)"
   block:
@@ -209,7 +209,7 @@
         kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
         ciphers: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
         macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
-      when: ansible_facts.packages['openssh'].version >= "6.7"
+      when: ansible_facts.packages['openssh'][0].version >= "6.7"
 
 - name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
   lineinfile:
