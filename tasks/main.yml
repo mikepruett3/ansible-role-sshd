@@ -6,6 +6,10 @@
   ansible.builtin.package_facts:
     manager: auto
 
+- name: "Define OpenSSH Version variable"
+  set_fact:
+    ssh_version: "{{ ansible_facts.packages['openssh']| map(attribute='version')| list }}"
+
 - name: "Update SSH daemon"
   package:
     name: "{{ ssh_package }}"
