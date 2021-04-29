@@ -19,5 +19,7 @@ client_alive_max: "3"
 login_grace_time: "1m"
 max_auth_tries: "4"
 
+log_level: "VERBOSE"
+
 banner_console: "/etc/issue"
 banner_remote: "/etc/issue.net"

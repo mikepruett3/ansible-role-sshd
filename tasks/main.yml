@@ -29,6 +29,11 @@
       args:
         creates: /etc/ssh/ssh_host_ecdsa_key
 
+    - name: "Generating ED25519 host key"
+      command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
+      args:
+        creates: /etc/ssh/ssh_host_ecdsa_key
+
 - name: "Collect SHA256 hash of sshd_config file"
   stat:
     path: "{{ sshd_config }}"
@@ -54,6 +59,46 @@
         dest: "{{ sshd_config }}"
       notify: "Restart SSH Daemon"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8' and config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
+
+- name: "Change order of HostKeys in SSH configuration (RHEL7+)"
+  block:
+    - name: "Delete ED25519 HostKey from bottom of list"
+      lineinfile:
+        dest: "{{ sshd_config }}"
+        regexp: "^HostKey /etc/ssh/ssh_host_ed25519_key"
+        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+        state: absent
+        validate: 'sshd -T -f %s'
+        mode: 0644
+    - name: "Insert ED25519 key above RSA Key"
+      lineinfile:
+        dest: "{{ sshd_config }}"
+        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+        insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7'
+
+- name: "Enable RSA & ECDSA HostKeys in SSH configuration (RHEL6)"
+  block:
+    - name: "Enable RSA HostKey"
+      lineinfile:
+        dest: "{{ sshd_config }}"
+        regexp: "^#HostKey /etc/ssh/ssh_host_rsa_key"
+        line: "HostKey /etc/ssh/ssh_host_rsa_key"
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
+    - name: "Enable ECDSA HostKey"
+      lineinfile:
+        dest: "{{ sshd_config }}"
+        line: "HostKey /etc/ssh/ssh_host_ecdsa_key"
+        insertafter: "HostKey /etc/ssh/ssh_host_rsa_key"
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
+  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version <= '6'
 
 - name: "Update SSH configuration to be more secure"
   lineinfile:
@@ -93,6 +138,10 @@
       line: "LoginGraceTime {{ login_grace_time }}"
     - regexp: "^MaxAuthTries"
       line: "MaxAuthTries {{ max_auth_tries }}"
+    - regexp: "^#LogLevel"
+      line: "LogLevel {{ log_level }}"
+    - regexp: "^Subsystem"
+      line: "Subsystem sftp  /usr/lib/ssh/sftp-server -f AUTHPRIV -l INFO"
   notify: "Restart SSH Daemon"
 
 - name: "Check for issue.j2 template file"
@@ -140,9 +189,9 @@
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7'
     - name: "Define KexAlgorithms, Ciphers & MAC's (RHEL 8)"
       set_fact:
-        kex_algorithms: "curve25519-sha256@libssh.org"
-        ciphers: "aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com"
-        macs: "hmac-sha2-256,hmac-sha2-512,hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128@openssh.com,umac-128-etm@openssh.com"
+        kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
+        ciphers: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+        macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8'
 
 - name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
@@ -165,7 +214,8 @@
 #- name: "Add group to AllowedGroups in SSH configuration"
 #  block:
 #    - name: "Check for groups existence"
-#      group:
+#      ansible.builtin.group:
 #        name: "{{ ssh_group }}"
+#        local: no
 #        state: present
         
