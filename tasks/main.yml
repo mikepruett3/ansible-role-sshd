@@ -8,8 +8,8 @@
 
 - name: "Define OpenSSH Version variable"
   set_fact:
-    ssh_version: "{{ ansible_facts.packages['openssh']| map(attribute='version')| list | join(' ') }}"
-    #ssh_version: "{{ ansible_facts.packages['openssh'][0].version }}"
+    #ssh_version: "{{ ansible_facts.packages['openssh']| map(attribute='version')| list | join(' ') }}"
+    ssh_version: "{{ ansible_facts.packages['openssh'][0].version }}"
 
 - name: "Update SSH daemon"
   package:
