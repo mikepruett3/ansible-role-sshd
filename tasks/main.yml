@@ -182,10 +182,9 @@
 - name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
   lineinfile:
     dest: /etc/sysconfig/sshd
-    regexp: "^ CRYPTO"
+    regexp: "^ CRYPTO_POLICY"
     line: "CRYPTO_POLICY="
     state: present
-    validate: 'sshd -T -f %s'
     mode: 0644
   notify: "Restart SSH Daemon"
   when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8'
