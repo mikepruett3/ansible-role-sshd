@@ -182,7 +182,7 @@
 - name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
   lineinfile:
     dest: '/etc/sysconfig/sshd'
-    regexp: "# CRYPTO_POLICY="
+    regexp: "^# CRYPTO_POLICY="
     line: "CRYPTO_POLICY="
     state: present
     validate: 'sshd -T -f %s'
