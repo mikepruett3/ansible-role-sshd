@@ -5,7 +5,7 @@
 - name: "Gather the package facts"
   ansible.builtin.package_facts:
     manager: auto
-  when: ansible_facts.packages not defined
+  when: ansible_facts.packages is not defined
 
 - name: "Update SSH daemon"
   package:
