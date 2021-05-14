@@ -38,6 +38,7 @@
       command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
       args:
         creates: /etc/ssh/ssh_host_ed25519_key
+      when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7'
 
 - name: "Collect SHA256 hash of sshd_config file"
   ansible.builtin.stat:
