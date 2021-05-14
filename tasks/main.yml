@@ -8,12 +8,12 @@
   when: ansible_facts.packages is not defined
 
 - name: "Update SSH daemon"
-  package:
+  ansible.builtin.package:
     name: "{{ ssh_package }}"
     state: latest
 
 - name: "Ensure SSH daemon is running"
-  service:
+  ansible.builtin.service:
     name: "{{ ssh_daemon }}"
     state: started
 
@@ -40,26 +40,26 @@
         creates: /etc/ssh/ssh_host_ed25519_key
 
 - name: "Collect SHA256 hash of sshd_config file"
-  stat:
+  ansible.builtin.stat:
     path: "{{ sshd_config }}"
   register: config_file
 
 - name: "Deploy original SSH configuration file"
   block:
     - name: "Deploy original SSH configuration file (RHEL6)"
-      template:
+      ansible.builtin.template:
         src: sshd_config_rhel6.j2
         dest: "{{ sshd_config }}"
       notify: "Restart SSH Daemon"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6' and config_file.stat.checksum != "9ae0b14da869aa6d9b52442f85c96e86450b521a93c52c256f6660e683ad5ff7"
     - name: "Deploy original SSH configuration file (RHEL7)"
-      template:
+      ansible.builtin.template:
         src: sshd_config_rhel7.j2
         dest: "{{ sshd_config }}"
       notify: "Restart SSH Daemon"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '7' and config_file.stat.checksum != "86eb7bfb84dfe487161ac349fbea02a9c2c80de4e7bb9ca4148568924723a4b5"
     - name: "Deploy original SSH configuration file (RHEL8)"
-      template:
+      ansible.builtin.template:
         src: sshd_config_rhel8.j2
         dest: "{{ sshd_config }}"
       notify: "Restart SSH Daemon"
@@ -68,7 +68,7 @@
 - name: "Change order of HostKeys in SSH configuration (RHEL7+)"
   block:
     - name: "Delete ED25519 HostKey from bottom of list"
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: "{{ sshd_config }}"
         regexp: "^HostKey /etc/ssh/ssh_host_ed25519_key"
         line: "HostKey /etc/ssh/ssh_host_ed25519_key"
@@ -76,7 +76,7 @@
         validate: 'sshd -T -f %s'
         mode: 0644
     - name: "Insert ED25519 key above RSA Key"
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: "{{ sshd_config }}"
         line: "HostKey /etc/ssh/ssh_host_ed25519_key"
         insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
@@ -88,7 +88,7 @@
 - name: "Enable RSA & ECDSA HostKeys in SSH configuration (RHEL6)"
   block:
     - name: "Enable RSA HostKey"
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: "{{ sshd_config }}"
         regexp: "^#HostKey /etc/ssh/ssh_host_rsa_key"
         line: "HostKey /etc/ssh/ssh_host_rsa_key"
@@ -96,7 +96,7 @@
         validate: 'sshd -T -f %s'
         mode: 0644
     - name: "Enable ECDSA HostKey"
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: "{{ sshd_config }}"
         line: "HostKey /etc/ssh/ssh_host_ecdsa_key"
         insertafter: "HostKey /etc/ssh/ssh_host_rsa_key"
@@ -106,7 +106,7 @@
   when: ansible_os_family == 'RedHat' and ansible_distribution_major_version <= '6'
 
 - name: "Update SSH configuration to be more secure"
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "{{ sshd_config }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
@@ -150,7 +150,7 @@
   notify: "Restart SSH Daemon"
 
 - name: "Check for issue.j2 template file"
-  stat:
+  ansible.builtin.stat:
     path: "{{ role_path }}/templates/issue.j2"
   delegate_to: localhost
   register: issue_template
@@ -158,17 +158,17 @@
 - name: "Configure Login Banners"
   block:
     - name: "Configure Console Login Banner"
-      template:
+      ansible.builtin.template:
         src: issue.j2
         dest: "{{ banner_console }}"
 
     - name: "Configure Remote Login Banner"
-      template:
+      ansible.builtin.template:
         src: issue.j2
         dest: "{{ banner_remote }}"
 
     - name: "Update SSH configuration to include Login Banners"
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: "{{ sshd_config }}"
         regexp: "^Banner"
         line: "Banner {{ banner_remote }}"
@@ -180,7 +180,7 @@
 
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/security_hardening/using-the-system-wide-cryptographic-policies_security-hardening#examples-of-opting-out-of-system-wide-crypto-policies_using-the-system-wide-cryptographic-policies
 - name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/sysconfig/sshd
     regexp: "^ CRYPTO_POLICY"
     line: "CRYPTO_POLICY="
@@ -192,20 +192,20 @@
 - name: "Define KexAlgorithms, Ciphers & MAC's... based on distribution version"
   block:
     - name: "Define KexAlgorithms, Ciphers & MAC's (RHEL 6)"
-      set_fact:
+      ansible.builtin.set_fact:
         kex_algorithms: "diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1"
         ciphers: "aes128-ctr,aes192-ctr,aes256-ctr"
         macs: "hmac-ripemd160,hmac-ripemd160@openssh.com,hmac-sha2-256,hmac-sha2-512"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '6'
     - name: "Define KexAlgorithms, Ciphers & MAC's (RHEL 7+)"
-      set_fact:
+      ansible.builtin.set_fact:
         kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
         ciphers: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
         macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7'
 
 - name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: "{{ sshd_config }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
