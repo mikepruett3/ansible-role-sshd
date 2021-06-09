@@ -254,7 +254,7 @@
         validate: 'sshd -T -f %s'
         mode: 0644
       notify: "Restart SSH Daemon"
-      when: group.rc == 0 and allowgroups.rc == 0 and "'ssh_groups|string' not in allowgroups.stdout"
+      when: group.rc == 0 and allowgroups.rc == 0 and not ( ssh_groups in allowgroups.stdout )
   tags:
     - groups
         
