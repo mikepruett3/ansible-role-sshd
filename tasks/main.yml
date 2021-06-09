@@ -230,6 +230,7 @@
       register: group
     - name: "Check if AllowGroups config exists in sshd_config"
       shell: cat /etc/ssh/sshd_config | grep AllowGroups
+      ignore_errors: true
       register: allowgroups
       when: group.rc == 0
     - name: "Add group to AllowGroups in SSH configuration, if group found"
