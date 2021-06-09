@@ -240,7 +240,7 @@
         state: present
         validate: 'sshd -T -f %s'
         mode: 0644
-      when: allowgroups.rc != 0
+      when: group.rc == 0 and allowgroups.rc != 0
     - name: "Append group to AllowGroups in SSH configuration, if group found"
       ansible.builtin.lineinfile:
         path: "{{ sshd_config }}"
@@ -249,7 +249,7 @@
         state: present
         validate: 'sshd -T -f %s'
         mode: 0644
-      when: allowgroups.rc == 0 
+      when: group.rc == 0 and allowgroups.rc == 0 
   tags:
     - groups
     - group
