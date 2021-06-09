@@ -254,7 +254,7 @@
         validate: 'sshd -T -f %s'
         mode: 0644
       notify: "Restart SSH Daemon"
-      when: group.rc == 0 and allowgroups.rc == 0 and allowgroups.stdout is not search('{{ ssh_group }}')
+      when: group.rc == 0 and allowgroups.rc == 0 and allowgroups.stdout is not search({{ ssh_group }})
   tags:
     - groups
         
