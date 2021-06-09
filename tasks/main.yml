@@ -226,12 +226,12 @@
   block:
     - name: "Check for groups existence"
       shell: getent group {{ ssh_group }}
-      ignore_errors: true
       register: group
+      ignore_errors: true
     - name: "Check if AllowGroups config exists in sshd_config"
       shell: cat {{ sshd_config }} | grep AllowGroups
-      #ignore_errors: true
       register: allowgroups
+      ignore_errors: true
       when: group.rc == 0
     - name: "Add group to AllowGroups in SSH configuration, if group found"
       ansible.builtin.lineinfile:
