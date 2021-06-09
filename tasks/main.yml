@@ -222,11 +222,37 @@
       line: "MACs {{ macs }}"
   notify: "Restart SSH Daemon"
 
-#- name: "Add group to AllowedGroups in SSH configuration"
-#  block:
-#    - name: "Check for groups existence"
-#      ansible.builtin.group:
-#        name: "{{ ssh_group }}"
-#        local: no
-#        state: present
+- name: "Add group to AllowedGroups in SSH configuration"
+  block:
+    - name: "Check for groups existence"
+      shell: getent group {{ ssh_group }}
+      register: group
+    - name: "Check if AllowGroups config exists in sshd_config"
+      shell: cat /etc/ssh/sshd_config | grep AllowGroups
+      register: allowgroups
+    - name: "Add group to AllowGroups in SSH configuration, if group found"
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config }}"
+        insertafter: "EOF"
+        line: 'AllowGroups {{ ssh_group }}'
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
+      when:
+        - group.rc == 0
+        - allowgroups.rc != 0
+    - name: "Append group to AllowGroups in SSH configuration, if group found"
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config }}"
+        regexp: "^(.*AllowGroups.*)$"
+        line: '\1,{{ ssh_group }}'
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
+      when:
+        - group.rc == 0
+        - allowgroups.rc == 0 
+  tags:
+    - groups
+    - group
         
