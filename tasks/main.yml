@@ -226,6 +226,7 @@
   block:
     - name: "Check for groups existence"
       shell: getent group {{ ssh_group }}
+      ignore_errors: true
       register: group
     - name: "Check if AllowGroups config exists in sshd_config"
       shell: cat /etc/ssh/sshd_config | grep AllowGroups
