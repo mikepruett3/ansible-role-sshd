@@ -257,7 +257,7 @@
       when:
         - group.rc == 0
         - allowgroups.rc == 0
-        - "ssh_groups|string not in allowgroups.stdout"
+        - "ssh_group|string not in allowgroups.stdout"
   tags:
     - groups
         
