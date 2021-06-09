@@ -247,8 +247,8 @@
     - name: "Append group to AllowGroups in SSH configuration, if group found"
       ansible.builtin.lineinfile:
         path: "{{ sshd_config }}"
-        regexp: "^(.*AllowGroups.*)$"
-        line: '\1,{{ ssh_group }}'
+        regexp: "^AllowGroups"
+        line: '{{ allowgroups.stdout_lines }} {{ ssh_group }}'
         state: present
         validate: 'sshd -T -f %s'
         mode: 0644
