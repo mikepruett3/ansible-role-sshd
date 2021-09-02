@@ -4,7 +4,7 @@
 - name: "Include OS-specific variables"
   include_vars: "{{ ansible_os_family }}.yml"
   tags:
-    - groups
+    - group
 
 - name: "Gather the package facts"
   ansible.builtin.package_facts:
@@ -233,8 +233,8 @@
       register: group
       when: ssh_group is defined
       ignore_errors: true
-      tags:
-        - groups
+      #tags:
+      #  - groups
     - name: "Check if AllowGroups config exists in sshd_config"
       shell: cat {{ sshd_config }} | grep AllowGroups
       register: allowgroups
@@ -242,8 +242,8 @@
       when:
         - ssh_group is defined
         - group.rc == 0
-      tags:
-        - groups
+      #tags:
+      #  - groups
     - name: "Add group to AllowGroups in SSH configuration, if group found"
       ansible.builtin.lineinfile:
         path: "{{ sshd_config }}"
@@ -257,8 +257,8 @@
         - ssh_group is defined
         - group.rc == 0
         - allowgroups.rc != 0
-      tags:
-        - groups
+      #tags:
+      #  - groups
     - name: "Append group to AllowGroups in SSH configuration, if group found"
       ansible.builtin.lineinfile:
         path: "{{ sshd_config }}"
@@ -273,6 +273,6 @@
         - group.rc == 0
         - allowgroups.rc == 0
         - ssh_group|string not in allowgroups.stdout
-      tags:
-        - groups
+  tags:
+    - groups
         
