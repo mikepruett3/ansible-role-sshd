@@ -44,6 +44,12 @@
         creates: /etc/ssh/ssh_host_ed25519_key
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7'
 
+    - name: "Generating ED25519 host key"
+      command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
+      args:
+        creates: /etc/ssh/ssh_host_ed25519_key
+      when: ansible_os_family == 'Debian'
+
 - name: "Collect SHA256 hash of sshd_config file"
   ansible.builtin.stat:
     path: "{{ sshd_config }}"
@@ -89,6 +95,26 @@
         validate: 'sshd -T -f %s'
         mode: 0644
   when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7'
+
+- name: "Change order of HostKeys in SSH configuration (Debain)"
+  block:
+    - name: "Delete ED25519 HostKey from bottom of list"
+      ansible.builtin.lineinfile:
+        dest: "{{ sshd_config }}"
+        regexp: "^HostKey /etc/ssh/ssh_host_ed25519_key"
+        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+        state: absent
+        validate: 'sshd -T -f %s'
+        mode: 0644
+    - name: "Insert ED25519 key above RSA Key"
+      ansible.builtin.lineinfile:
+        dest: "{{ sshd_config }}"
+        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+        insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
+  when: ansible_os_family == 'Debian'
 
 - name: "Enable RSA & ECDSA HostKeys in SSH configuration (RHEL6)"
   block:
@@ -208,6 +234,12 @@
         ciphers: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
         macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
       when: ansible_os_family == 'RedHat' and ansible_distribution_major_version >= '7'
+    - name: "Define KexAlgorithms, Ciphers & MAC's (Debian)"
+      ansible.builtin.set_fact:
+        kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
+        ciphers: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+        macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
+      when: ansible_os_family == 'Debian'
 
 - name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
   ansible.builtin.lineinfile:
