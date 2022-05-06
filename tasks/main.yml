@@ -180,7 +180,7 @@
 
 - name: "Check for issue.j2 template file"
   ansible.builtin.stat:
-    path: "{{ role_path }}/templates/issue.j2"
+    path: "{{ role_path }}/custom/issue.j2"
   delegate_to: localhost
   register: issue_template
 
@@ -188,12 +188,12 @@
   block:
     - name: "Configure Console Login Banner"
       ansible.builtin.template:
-        src: issue.j2
+        src: "{{ role_path }}/custom/issue.j2"
         dest: "{{ banner_console }}"
 
     - name: "Configure Remote Login Banner"
       ansible.builtin.template:
-        src: issue.j2
+        src: "{{ role_path }}/custom/issue.j2"
         dest: "{{ banner_remote }}"
 
     - name: "Update SSH configuration to include Login Banners"
