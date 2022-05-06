@@ -19,7 +19,7 @@
     line: 'AllowGroups {{ ssh_group }}'
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: 0600
   notify: "Restart SSH Daemon"
   when:
     - ssh_group is defined
@@ -33,7 +33,7 @@
     line: '{{ allowgroups.stdout }} {{ ssh_group }}'
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: 0600
   notify: "Restart SSH Daemon"
   when:
     - ssh_group is defined

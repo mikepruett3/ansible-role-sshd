@@ -141,7 +141,7 @@
     line: "{{ item.line }}"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: 0600
     #backup: yes
   with_items:
     - regexp: "^PasswordAuthentication"
@@ -203,7 +203,7 @@
         line: "Banner {{ banner_remote }}"
         state: present
         validate: 'sshd -T -f %s'
-        mode: 0644
+        mode: 0600
       notify: "Restart SSH Daemon"
   when: issue_template.stat.exists
 
@@ -214,7 +214,7 @@
     regexp: "^ CRYPTO_POLICY"
     line: "CRYPTO_POLICY="
     state: present
-    mode: 0644
+    mode: 0600
   notify: "Restart SSH Daemon"
   when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8'
 
@@ -246,7 +246,7 @@
     line: "{{ item.line }}"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: 0600
   with_items:
     - regexp: "^KexAlgorithms"
       line: "KexAlgorithms {{ kex_algorithms }}"
@@ -277,7 +277,7 @@
         line: 'AllowGroups {{ ssh_group }}'
         state: present
         validate: 'sshd -T -f %s'
-        mode: 0644
+        mode: 0600
       notify: "Restart SSH Daemon"
       when:
         - ssh_group is defined
@@ -290,7 +290,7 @@
         line: '{{ allowgroups.stdout }} {{ ssh_group }}'
         state: present
         validate: 'sshd -T -f %s'
-        mode: 0644
+        mode: 0600
       notify: "Restart SSH Daemon"
       when:
         - ssh_group is defined
