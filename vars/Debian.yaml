@@ -1,4 +1,6 @@
 ---
+# Debian vars file for ansible-role-sshd/
+
 sshd_config: /etc/ssh/sshd_config
 ssh_daemon: ssh
 ssh_package: openssh-server

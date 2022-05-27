@@ -1,4 +1,6 @@
 ---
+# RedHat vars file for ansible-role-sshd/
+
 sshd_config: /etc/ssh/sshd_config
 ssh_daemon: sshd
 ssh_package: openssh-server
