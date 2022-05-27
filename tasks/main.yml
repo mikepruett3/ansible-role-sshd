@@ -159,7 +159,7 @@
     - regexp: "^#LogLevel"
       line: "LogLevel {{ log_level }}"
     - regexp: "^Subsystem"
-      line: "Subsystem	sftp	/usr/libexec/openssh/sftp-server -f AUTHPRIV -l INFO"
+      line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
   notify: "Restart SSH Daemon"
 
 - name: "Check for issue.j2 template file"

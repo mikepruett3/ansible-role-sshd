@@ -4,3 +4,5 @@
 sshd_config: /etc/ssh/sshd_config
 ssh_daemon: sshd
 ssh_package: openssh-server
+sftp_server: /usr/libexec/openssh/sftp-server
+log_facility: AUTHPRIV
