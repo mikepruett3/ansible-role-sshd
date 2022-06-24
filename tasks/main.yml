@@ -162,6 +162,20 @@
       line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
   notify: "Restart SSH Daemon"
 
+- name: "Add AllowTcpForwarding setting in SSH configuration for jump servers"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0600
+  with_items:
+    - regexp: "^#AllowTcpForwarding yes"
+      line: "#AllowTcpForwarding yes"
+  when: "'jump_servers' in group_names"
+  notify: "Restart SSH Daemon"
+
 - name: "Check for issue.j2 template file"
   ansible.builtin.stat:
     path: "{{ playbook_dir }}/custom/issue.j2"
@@ -275,4 +289,3 @@
         - group.rc == 0
         - allowgroups.rc == 0
         - ssh_group|string not in allowgroups.stdout
-        
