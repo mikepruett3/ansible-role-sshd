@@ -171,8 +171,8 @@
     validate: 'sshd -T -f %s'
     mode: 0600
   with_items:
-    - regexp: "^#AllowTcpForwarding yes"
-      line: "#AllowTcpForwarding yes"
+    - regexp: "^#AllowTcpForwarding"
+      line: "AllowTcpForwarding yes"
   when: "'jump_servers' in group_names"
   notify: "Restart SSH Daemon"
 
