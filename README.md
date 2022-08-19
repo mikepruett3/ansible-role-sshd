@@ -17,6 +17,7 @@ Available variables are listed below, along with default values (see ```defaults
 password_authentication: "no"
 public_key_authentication: "yes"
 permit_root_login: "no"
+permit_userenv: "no"
 
 ssh_port: 22
 use_dns: "no"
@@ -33,6 +34,8 @@ client_alive_max: "3"
 
 login_grace_time: "1m"
 max_auth_tries: "4"
+max_sessions: "10"
+max_startups: "10:30:100"
 
 log_level: "VERBOSE"
 
