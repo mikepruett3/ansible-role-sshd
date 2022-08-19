@@ -134,7 +134,7 @@
       line: "PubkeyAuthentication {{ public_key_authentication }}"
     - regexp: "^PermitRootLogin"
       line: "PermitRootLogin {{ permit_root_login }}"
-    - regexp: "^PermitUserEnvironment"
+    - regexp: "^#PermitUserEnvironment"
       line: "PermitUserEnvironment {{ permit_userenv }}"
     - regexp: "^Port"
       line: "Port {{ ssh_port }}"
