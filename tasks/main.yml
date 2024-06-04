@@ -172,26 +172,27 @@
   when:
     - ssh_version is ansible.builtin.version('6.7', '>=')
 
-#- name: "Enable RSA & ECDSA HostKeys in SSH configuration (OpenSSH 5.3)"
-#  block:
-#    - name: "Enable RSA HostKey"
-#      ansible.builtin.lineinfile:
-#        dest: "{{ sshd_config }}"
-#        regexp: "^#HostKey /etc/ssh/ssh_host_rsa_key"
-#        line: "HostKey /etc/ssh/ssh_host_rsa_key"
-#        state: present
-#        validate: 'sshd -T -f %s'
-#        mode: 0644
-#    - name: "Enable ECDSA HostKey"
-#      ansible.builtin.lineinfile:
-#        dest: "{{ sshd_config }}"
-#        line: "HostKey /etc/ssh/ssh_host_ecdsa_key"
-#        insertafter: "HostKey /etc/ssh/ssh_host_rsa_key"
-#        state: present
-#        validate: 'sshd -T -f %s'
-#        mode: 0644
-#  when:
-#    - ssh_version is ansible.builtin.version('5.4', '<=')
+- name: "Enable RSA HostKey (OpenSSH 5.3)"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "^#HostKey /etc/ssh/ssh_host_rsa_key"
+    line: "HostKey /etc/ssh/ssh_host_rsa_key"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0644
+  when:
+    - ssh_version is ansible.builtin.version('5.4', '<=')
+
+- name: "Enable ECDSA HostKey (OpenSSH 5.3)"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    line: "HostKey /etc/ssh/ssh_host_ecdsa_key"
+    insertafter: "HostKey /etc/ssh/ssh_host_rsa_key"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0644
+  when:
+    - ssh_version is ansible.builtin.version('5.4', '<=')
 
 #- name: "Update SSH configuration to be more secure"
 #  ansible.builtin.lineinfile:
