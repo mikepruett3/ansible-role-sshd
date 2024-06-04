@@ -361,31 +361,25 @@
     - ssh_group is defined
     - result.rc == 0
 
-- name: "Add group to AllowGroups in SSH configuration, if group found"
+- name: "Add group to AllowGroups in SSH configuration"
   ansible.builtin.lineinfile:
     path: "{{ sshd_config }}"
-    #insertafter: "EOF"
+    regexp: '^AllowGroups.'
+    line: 'AllowGroups {{ ssh_group }}'
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0600
+  when:
+    - allowed_groups is not defined
+
+- name: "Append group to AllowGroups in SSH configuration, if group found"
+  ansible.builtin.lineinfile:
+    path: "{{ sshd_config }}"
     regexp: '^AllowGroups.'
     line: 'AllowGroups {{ ssh_group }} {{ allowed_groups }}'
     state: present
     validate: 'sshd -T -f %s'
     mode: 0600
-  #notify: "Restart SSH Daemon"
   when:
     - allowed_groups is defined
-    - allowed_groups is search(ssh_group)
-
-    #- name: "Append group to AllowGroups in SSH configuration, if group found"
-    #  ansible.builtin.lineinfile:
-    #    path: "{{ sshd_config }}"
-    #    regexp: "^AllowGroups"
-    #    line: '{{ allowgroups.stdout }} {{ ssh_group }}'
-    #    state: present
-    #    validate: 'sshd -T -f %s'
-    #    mode: 0600
-    #  notify: "Restart SSH Daemon"
-    #  when:
-    #    - ssh_group is defined
-    #    - group.rc == 0
-    #    - allowgroups.rc == 0
-    #    - ssh_group|string not in allowgroups.stdout
+    - allowed_groups is not search(ssh_group)
