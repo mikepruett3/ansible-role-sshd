@@ -373,7 +373,7 @@
   #notify: "Restart SSH Daemon"
   when:
     - allowed_groups is defined
-    - allowed_groups is not search(ssh_group)
+    - allowed_groups is search(ssh_group)
 
     #- name: "Append group to AllowGroups in SSH configuration, if group found"
     #  ansible.builtin.lineinfile:
