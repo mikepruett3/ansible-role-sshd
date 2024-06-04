@@ -64,17 +64,17 @@
 #    name: "{{ ssh_daemon }}"
 #    state: started
 
-#- name: "Check for RSA Host key"
-#  ansible.builtin.stat:
-#    path: /etc/ssh/ssh_host_rsa_key
-#  register: result
+- name: "Check for RSA Host key"
+  ansible.builtin.stat:
+    path: /etc/ssh/ssh_host_rsa_key
+  register: result
 
-#- name: "Generating RSA host key"
-#  ansible.builtin.command: ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
-#  args:
-#    creates: /etc/ssh/ssh_host_rsa_key
-#  when:
-#    - not result.stat.exists
+- name: "Generating RSA host key"
+  ansible.builtin.command: ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
+  args:
+    creates: /etc/ssh/ssh_host_rsa_key
+  when:
+    - not result.stat.exists
 
 #- name: "Check for DSA Host key"
 #  ansible.builtin.stat:
