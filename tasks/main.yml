@@ -5,302 +5,364 @@
   ansible.builtin.include_vars:
     file: "{{ ansible_os_family }}.yaml"
 
-- name: "Gather the package facts"
-  ansible.builtin.package_facts:
-    manager: auto
-  when: ansible_facts.packages is not defined
+#- name: "Gather the package facts"
+#  ansible.builtin.package_facts:
+#    manager: auto
+#  when:
+#    - ansible_facts.packages is not defined
 
-- name: "Get the OpenSSH Server installed package version (RedHat)"
+- name: "Gather the OpenSSH Server installed version (RedHat)"
+  ansible.builtin.shell:
+    cmd: ssh -V 2>&1 | cut -d "," -f 1 | cut -d "_" -f 2
+  register: result
+  when:
+    - ansible_facts['os_family'] == 'RedHat'
+
+- name: "Gather the OpenSSH Server installed version (Debian)"
+  ansible.builtin.shell:
+    cmd: ssh -V 2>&1 | cut -d " " -f 1 | cut -d "_" -f 2
+  register: result
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+
+- name: "Get the OpenSSH Server installed package version"
   ansible.builtin.set_fact:
-    ssh_version: "{{ ansible_facts.packages['openssh-server'][0].version }}"
-  when: ansible_facts['os_family'] == 'RedHat'
+    ssh_version: "{{ result.stdout }}"
 
-- name: "Get the OpenSSH Server installed package version (Debian)"
-  ansible.builtin.set_fact:
-    ssh_version: "{{ ansible_facts.packages['openssh-server'][0].version.split(':')[1] }}"
-  when: ansible_facts['os_family'] == 'Debian'
+#- name: "Update SSH daemon (yum)"
+#  ansible.builtin.yum:
+#    name: "{{ ssh_package }}"
+#    state: latest
+#  when:
+#    - ansible_facts['pkg_mgr'] == 'yum'
 
-- name: "Update SSH daemon"
-  ansible.builtin.package:
-    name: "{{ ssh_package }}"
-    state: latest
+#- name: "Update SSH daemon (dnf)"
+#  ansible.builtin.dnf:
+#    name: "{{ ssh_package }}"
+#    state: latest
+#    disable_gpg_check: yes
+#  when:
+#    - ansible_facts['pkg_mgr'] == 'dnf'
 
-- name: "Ensure SSH daemon is running"
-  ansible.builtin.service:
-    name: "{{ ssh_daemon }}"
-    state: started
+#- name: "Update SSH daemon (apt)"
+#  ansible.builtin.apt:
+#    name: "{{ ssh_package }}"
+#    state: latest
+#  when:
+#    - ansible_facts['pkg_mgr'] == 'yum'
 
-- name: "Generating RSA host key"
-  ansible.builtin.command: ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
-  args:
-    creates: /etc/ssh/ssh_host_rsa_key
+##- name: "Ensure SSH daemon is running"
+##  ansible.builtin.service:
+##    name: "{{ ssh_daemon }}"
+##    state: started
 
-- name: "Generating DSA host key"
-  ansible.builtin.command: ssh-keygen -q -t dsa -f /etc/ssh/ssh_host_dsa_key -C "" -N ""
-  args:
-    creates: /etc/ssh/ssh_host_dsa_key
+#- name: "Check for RSA Host key"
+#  ansible.builtin.stat:
+#    path: /etc/ssh/ssh_host_rsa_key
+#  register: result
 
-- name: "Generating ECDSA host key"
-  ansible.builtin.command: ssh-keygen -q -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -C "" -N ""
-  args:
-    creates: /etc/ssh/ssh_host_ecdsa_key
+#- name: "Generating RSA host key"
+#  ansible.builtin.command: ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
+#  args:
+#    creates: /etc/ssh/ssh_host_rsa_key
+#  when:
+#    - not result.stat.exists
 
-- name: "Generating ED25519 host key (OpenSSH 6.7+)"
-  ansible.builtin.command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
-  args:
-    creates: /etc/ssh/ssh_host_ed25519_key
-  when: ssh_version >= '6.7'
+#- name: "Check for DSA Host key"
+#  ansible.builtin.stat:
+#    path: /etc/ssh/ssh_host_dsa_key
+#  register: result
 
-- name: "Collect SHA256 hash of sshd_config file"
-  ansible.builtin.stat:
-    path: "{{ sshd_config }}"
-  register: config_file
+#- name: "Generating DSA host key"
+#  ansible.builtin.command: ssh-keygen -q -t dsa -f /etc/ssh/ssh_host_dsa_key -C "" -N ""
+#  args:
+#    creates: /etc/ssh/ssh_host_dsa_key
+#  when:
+#    - not result.stat.exists
 
-- name: "Deploy original SSH configuration file (RHEL6)"
-  ansible.builtin.template:
-    src: sshd_config_rhel6.j2
-    dest: "{{ sshd_config }}"
-  notify: "Restart SSH Daemon"
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] == '6'
-    - config_file.stat.checksum != "9ae0b14da869aa6d9b52442f85c96e86450b521a93c52c256f6660e683ad5ff7"
+#- name: "Check for ECDSA Host key"
+#  ansible.builtin.stat:
+#    path: /etc/ssh/ssh_host_ecdsa_key
+#  register: result
 
-- name: "Deploy original SSH configuration file (RHEL7)"
-  ansible.builtin.template:
-    src: sshd_config_rhel7.j2
-    dest: "{{ sshd_config }}"
-  notify: "Restart SSH Daemon"
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] == '7'
-    - config_file.stat.checksum != "86eb7bfb84dfe487161ac349fbea02a9c2c80de4e7bb9ca4148568924723a4b5"
+#- name: "Generating ECDSA host key"
+#  ansible.builtin.command: ssh-keygen -q -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -C "" -N ""
+#  args:
+#    creates: /etc/ssh/ssh_host_ecdsa_key
+#  when:
+#    - not result.stat.exists
 
-- name: "Deploy original SSH configuration file (RHEL8)"
-  ansible.builtin.template:
-    src: sshd_config_rhel8.j2
-    dest: "{{ sshd_config }}"
-  notify: "Restart SSH Daemon"
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] == '8'
-    - config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
+#- name: "Check for ED25519 Host key (OpenSSH 6.7+)"
+#  ansible.builtin.stat:
+#    path: /etc/ssh/ssh_host_ed25519_key
+#  register: result
+#  when:
+#    - ssh_version is ansible.builtin.version('6.7', '>=')
 
-- name: "Change order of HostKeys in SSH configuration (OpenSSH 6.7+)"
-  block:
-    - name: "Delete ED25519 HostKey from bottom of list"
-      ansible.builtin.lineinfile:
-        dest: "{{ sshd_config }}"
-        regexp: "^HostKey /etc/ssh/ssh_host_ed25519_key"
-        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
-        state: absent
-        validate: 'sshd -T -f %s'
-        mode: 0644
-    - name: "Insert ED25519 key above RSA Key"
-      ansible.builtin.lineinfile:
-        dest: "{{ sshd_config }}"
-        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
-        insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
-        state: present
-        validate: 'sshd -T -f %s'
-        mode: 0644
-  when: ssh_version >= '6.7'
+#- name: "Generating ED25519 host key (OpenSSH 6.7+)"
+#  ansible.builtin.command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
+#  args:
+#    creates: /etc/ssh/ssh_host_ed25519_key
+#  when:
+#    - not result.stat.exists
+#    - ssh_version is ansible.builtin.version('6.7', '>=')
 
-- name: "Enable RSA & ECDSA HostKeys in SSH configuration (OpenSSH 5.3)"
-  block:
-    - name: "Enable RSA HostKey"
-      ansible.builtin.lineinfile:
-        dest: "{{ sshd_config }}"
-        regexp: "^#HostKey /etc/ssh/ssh_host_rsa_key"
-        line: "HostKey /etc/ssh/ssh_host_rsa_key"
-        state: present
-        validate: 'sshd -T -f %s'
-        mode: 0644
-    - name: "Enable ECDSA HostKey"
-      ansible.builtin.lineinfile:
-        dest: "{{ sshd_config }}"
-        line: "HostKey /etc/ssh/ssh_host_ecdsa_key"
-        insertafter: "HostKey /etc/ssh/ssh_host_rsa_key"
-        state: present
-        validate: 'sshd -T -f %s'
-        mode: 0644
-  when: ssh_version <= '5.4'
+#- name: "Collect SHA256 hash of sshd_config file"
+#  ansible.builtin.stat:
+#    path: "{{ sshd_config }}"
+#  register: config_file
 
-- name: "Update SSH configuration to be more secure"
-  ansible.builtin.lineinfile:
-    dest: "{{ sshd_config }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    state: present
-    validate: 'sshd -T -f %s'
-    mode: 0600
-    #backup: yes
-  with_items:
-    - regexp: "^PasswordAuthentication"
-      line: "PasswordAuthentication {{ password_authentication }}"
-    - regexp: "^PubkeyAuthentication"
-      line: "PubkeyAuthentication {{ public_key_authentication }}"
-    - regexp: "^PermitRootLogin"
-      line: "PermitRootLogin {{ permit_root_login }}"
-    - regexp: "^#PermitUserEnvironment"
-      line: "PermitUserEnvironment {{ permit_userenv }}"
-    - regexp: "^Port"
-      line: "Port {{ ssh_port }}"
-    - regexp: "^UseDNS"
-      line: "UseDNS {{ use_dns }}"
-    - regexp: "^IgnoreRhosts"
-      line: "IgnoreRhosts {{ ignore_rhosts }}"
-    - regexp: "^PermitEmptyPasswords"
-      line: "PermitEmptyPasswords {{ permit_empty_password }}"
-    - regexp: "^ChallengeResponseAuthentication"
-      line: "ChallengeResponseAuthentication {{ challenge_response_auth }}"
-    - regexp: "^GSSAPIAuthentication"
-      line: "GSSAPIAuthentication {{ gss_api_authentication }}"
-    - regexp: "^X11Forwarding"
-      line: "X11Forwarding {{ x11_forwarding }}"
-    - regexp: "^ClientAliveInterval"
-      line: "ClientAliveInterval {{ client_alive_int }}"
-    - regexp: "^ClientAliveCountMax"
-      line: "ClientAliveCountMax {{ client_alive_max }}"
-    - regexp: "^LoginGraceTime"
-      line: "LoginGraceTime {{ login_grace_time }}"
-    - regexp: "^MaxAuthTries"
-      line: "MaxAuthTries {{ max_auth_tries }}"
-    - regexp: "^MaxSessions"
-      line: "MaxSessions {{ max_sessions }}"
-    - regexp: "^MaxStartups"
-      line: "MaxStartups {{ max_startups }}"
-    - regexp: "^#LogLevel"
-      line: "LogLevel {{ log_level }}"
-    - regexp: "^Subsystem"
-      line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
-  notify: "Restart SSH Daemon"
+#- name: "Deploy original SSH configuration file (RHEL6)"
+#  ansible.builtin.template:
+#    src: sshd_config_rhel6.j2
+#    dest: "{{ sshd_config }}"
+#  notify: "Restart SSH Daemon"
+#  when:
+#    - ansible_facts['os_family'] == 'RedHat'
+#    - ansible_facts['distribution_major_version'] == '6'
+#    - config_file.stat.checksum != "9ae0b14da869aa6d9b52442f85c96e86450b521a93c52c256f6660e683ad5ff7"
 
-- name: "Add AllowTcpForwarding setting in SSH configuration for jump servers"
-  ansible.builtin.lineinfile:
-    dest: "{{ sshd_config }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    state: present
-    validate: 'sshd -T -f %s'
-    mode: 0600
-  with_items:
-    - regexp: "^#AllowTcpForwarding"
-      line: "AllowTcpForwarding yes"
-  when: "'jump_servers' in group_names"
-  notify: "Restart SSH Daemon"
+#- name: "Deploy original SSH configuration file (RHEL7)"
+#  ansible.builtin.template:
+#    src: sshd_config_rhel7.j2
+#    dest: "{{ sshd_config }}"
+#  notify: "Restart SSH Daemon"
+#  when:
+#    - ansible_facts['os_family'] == 'RedHat'
+#    - ansible_facts['distribution_major_version'] == '7'
+#    - config_file.stat.checksum != "86eb7bfb84dfe487161ac349fbea02a9c2c80de4e7bb9ca4148568924723a4b5"
 
-- name: "Check for issue.j2 template file"
-  ansible.builtin.stat:
-    path: "{{ playbook_dir }}/custom/issue.j2"
-  delegate_to: localhost
-  register: issue_template
+#- name: "Deploy original SSH configuration file (RHEL8)"
+#  ansible.builtin.template:
+#    src: sshd_config_rhel8.j2
+#    dest: "{{ sshd_config }}"
+#  notify: "Restart SSH Daemon"
+#  when:
+#    - ansible_facts['os_family'] == 'RedHat'
+#    - ansible_facts['distribution_major_version'] == '8'
+#    - config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
 
-- name: "Configure Login Banners"
-  block:
-    - name: "Configure Console Login Banner"
-      ansible.builtin.template:
-        src: "{{ playbook_dir }}/custom/issue.j2"
-        dest: "{{ banner_console }}"
+#- name: "Change order of HostKeys in SSH configuration (OpenSSH 6.7+)"
+#  block:
+#    - name: "Delete ED25519 HostKey from bottom of list"
+#      ansible.builtin.lineinfile:
+#        dest: "{{ sshd_config }}"
+#        regexp: "^HostKey /etc/ssh/ssh_host_ed25519_key"
+#        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+#        state: absent
+#        validate: 'sshd -T -f %s'
+#        mode: 0644
+#    - name: "Insert ED25519 key above RSA Key"
+#      ansible.builtin.lineinfile:
+#        dest: "{{ sshd_config }}"
+#        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+#        insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
+#        state: present
+#        validate: 'sshd -T -f %s'
+#        mode: 0644
+#  when:
+#    - ssh_version is ansible.builtin.version('6.7', '>=')
 
-    - name: "Configure Remote Login Banner"
-      ansible.builtin.template:
-        src: "{{ playbook_dir }}/custom/issue.j2"
-        dest: "{{ banner_remote }}"
+#- name: "Enable RSA & ECDSA HostKeys in SSH configuration (OpenSSH 5.3)"
+#  block:
+#    - name: "Enable RSA HostKey"
+#      ansible.builtin.lineinfile:
+#        dest: "{{ sshd_config }}"
+#        regexp: "^#HostKey /etc/ssh/ssh_host_rsa_key"
+#        line: "HostKey /etc/ssh/ssh_host_rsa_key"
+#        state: present
+#        validate: 'sshd -T -f %s'
+#        mode: 0644
+#    - name: "Enable ECDSA HostKey"
+#      ansible.builtin.lineinfile:
+#        dest: "{{ sshd_config }}"
+#        line: "HostKey /etc/ssh/ssh_host_ecdsa_key"
+#        insertafter: "HostKey /etc/ssh/ssh_host_rsa_key"
+#        state: present
+#        validate: 'sshd -T -f %s'
+#        mode: 0644
+#  when:
+#    - ssh_version is ansible.builtin.version('5.4', '<=')
 
-    - name: "Update SSH configuration to include Login Banners"
-      ansible.builtin.lineinfile:
-        dest: "{{ sshd_config }}"
-        regexp: "^Banner"
-        line: "Banner {{ banner_remote }}"
-        state: present
-        validate: 'sshd -T -f %s'
-        mode: 0600
-      notify: "Restart SSH Daemon"
-  when: issue_template.stat.exists
+#- name: "Update SSH configuration to be more secure"
+#  ansible.builtin.lineinfile:
+#    dest: "{{ sshd_config }}"
+#    regexp: "{{ item.regexp }}"
+#    line: "{{ item.line }}"
+#    state: present
+#    validate: 'sshd -T -f %s'
+#    mode: 0600
+#    #backup: yes
+#  with_items:
+#    - regexp: "^PasswordAuthentication"
+#      line: "PasswordAuthentication {{ password_authentication }}"
+#    - regexp: "^PubkeyAuthentication"
+#      line: "PubkeyAuthentication {{ public_key_authentication }}"
+#    - regexp: "^PermitRootLogin"
+#      line: "PermitRootLogin {{ permit_root_login }}"
+#    - regexp: "^#PermitUserEnvironment"
+#      line: "PermitUserEnvironment {{ permit_userenv }}"
+#    - regexp: "^Port"
+#      line: "Port {{ ssh_port }}"
+#    - regexp: "^UseDNS"
+#      line: "UseDNS {{ use_dns }}"
+#    - regexp: "^IgnoreRhosts"
+#      line: "IgnoreRhosts {{ ignore_rhosts }}"
+#    - regexp: "^PermitEmptyPasswords"
+#      line: "PermitEmptyPasswords {{ permit_empty_password }}"
+#    - regexp: "^ChallengeResponseAuthentication"
+#      line: "ChallengeResponseAuthentication {{ challenge_response_auth }}"
+#    - regexp: "^GSSAPIAuthentication"
+#      line: "GSSAPIAuthentication {{ gss_api_authentication }}"
+#    - regexp: "^X11Forwarding"
+#      line: "X11Forwarding {{ x11_forwarding }}"
+#    - regexp: "^ClientAliveInterval"
+#      line: "ClientAliveInterval {{ client_alive_int }}"
+#    - regexp: "^ClientAliveCountMax"
+#      line: "ClientAliveCountMax {{ client_alive_max }}"
+#    - regexp: "^LoginGraceTime"
+#      line: "LoginGraceTime {{ login_grace_time }}"
+#    - regexp: "^MaxAuthTries"
+#      line: "MaxAuthTries {{ max_auth_tries }}"
+#    - regexp: "^MaxSessions"
+#      line: "MaxSessions {{ max_sessions }}"
+#    - regexp: "^MaxStartups"
+#      line: "MaxStartups {{ max_startups }}"
+#    - regexp: "^#LogLevel"
+#      line: "LogLevel {{ log_level }}"
+#    - regexp: "^Subsystem"
+#      line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
+#  notify: "Restart SSH Daemon"
+
+#- name: "Add AllowTcpForwarding setting in SSH configuration for jump servers"
+#  ansible.builtin.lineinfile:
+#    dest: "{{ sshd_config }}"
+#    regexp: "{{ item.regexp }}"
+#    line: "{{ item.line }}"
+#    state: present
+#    validate: 'sshd -T -f %s'
+#    mode: 0600
+#  with_items:
+#    - regexp: "^#AllowTcpForwarding"
+#      line: "AllowTcpForwarding yes"
+#  when:
+#    - "'jump_servers' in group_names"
+#  notify: "Restart SSH Daemon"
+
+#- name: "Check for issue.j2 template file"
+#  ansible.builtin.stat:
+#    path: "{{ playbook_dir }}/custom/issue.j2"
+#  delegate_to: localhost
+#  register: issue_template
+
+#- name: "Configure Login Banners"
+#  block:
+#    - name: "Configure Console Login Banner"
+#      ansible.builtin.template:
+#        src: "{{ playbook_dir }}/custom/issue.j2"
+#        dest: "{{ banner_console }}"
+#
+#    - name: "Configure Remote Login Banner"
+#      ansible.builtin.template:
+#        src: "{{ playbook_dir }}/custom/issue.j2"
+#        dest: "{{ banner_remote }}"
+#
+#    - name: "Update SSH configuration to include Login Banners"
+#      ansible.builtin.lineinfile:
+#        dest: "{{ sshd_config }}"
+#        regexp: "^Banner"
+#        line: "Banner {{ banner_remote }}"
+#        state: present
+#        validate: 'sshd -T -f %s'
+#        mode: 0600
+#      notify: "Restart SSH Daemon"
+#  when:
+#    - issue_template.stat.exists
 
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/security_hardening/using-the-system-wide-cryptographic-policies_security-hardening#examples-of-opting-out-of-system-wide-crypto-policies_using-the-system-wide-cryptographic-policies
-- name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
-  ansible.builtin.lineinfile:
-    dest: /etc/sysconfig/sshd
-    regexp: "^ CRYPTO_POLICY"
-    line: "CRYPTO_POLICY="
-    state: present
-    mode: 0600
-  notify: "Restart SSH Daemon"
-  when:
-    - ansible_facts['os_family'] == 'RedHat'
-    - ansible_facts['distribution_major_version'] == '8'
+#- name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
+#  ansible.builtin.lineinfile:
+#    dest: /etc/sysconfig/sshd
+#    regexp: "^ CRYPTO_POLICY"
+#    line: "CRYPTO_POLICY="
+#    state: present
+#    mode: 0600
+#  notify: "Restart SSH Daemon"
+#  when:
+#    - ansible_facts['os_family'] == 'RedHat'
+#    - ansible_facts['distribution_major_version'] == '8'
 
-- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 6.7+)"
-  ansible.builtin.set_fact:
-    kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
-    ciphers: "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
-    macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
-  when: ssh_version >= '6.7'
+#- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 6.7+)"
+#  ansible.builtin.set_fact:
+#    kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
+#    ciphers: "aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+#    macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
+#  when:
+#    - ssh_version is ansible.builtin.version('6.7', '>=')
 
-- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 5.3)"
-  ansible.builtin.set_fact:
-    kex_algorithms: "diffie-hellman-group-exchange-sha256"
-    ciphers: "aes256-ctr,aes192-ctr,aes128-ctr"
-    macs: "hmac-sha2-512,hmac-sha2-256"
-  when: ssh_version <= '5.4'
+#- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 5.3)"
+#  ansible.builtin.set_fact:
+#    kex_algorithms: "diffie-hellman-group-exchange-sha256"
+#    ciphers: "aes256-ctr,aes192-ctr,aes128-ctr"
+#    macs: "hmac-sha2-512,hmac-sha2-256"
+#  when:
+#    - ssh_version is ansible.builtin.version('5.4', '<=')
 
-- name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
-  ansible.builtin.lineinfile:
-    dest: "{{ sshd_config }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    state: present
-    validate: 'sshd -T -f %s'
-    mode: 0600
-  with_items:
-    - regexp: "^KexAlgorithms"
-      line: "KexAlgorithms {{ kex_algorithms }}"
-    - regexp: "^Ciphers"
-      line: "Ciphers {{ ciphers }}"
-    - regexp: "^MACs"
-      line: "MACs {{ macs }}"
-  notify: "Restart SSH Daemon"
+#- name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
+#  ansible.builtin.lineinfile:
+#    dest: "{{ sshd_config }}"
+#    regexp: "{{ item.regexp }}"
+#    line: "{{ item.line }}"
+#    state: present
+#    validate: 'sshd -T -f %s'
+#    mode: 0600
+#  with_items:
+#    - regexp: "^KexAlgorithms"
+#      line: "KexAlgorithms {{ kex_algorithms }}"
+#    - regexp: "^Ciphers"
+#      line: "Ciphers {{ ciphers }}"
+#    - regexp: "^MACs"
+#      line: "MACs {{ macs }}"
+#  notify: "Restart SSH Daemon"
 
-- name: "Add group to AllowedGroups in SSH configuration"
-  block:
-    - name: "Check for groups existence"
-      shell: getent group {{ ssh_group }}
-      register: group
-      when: ssh_group is defined
-      ignore_errors: true
-    - name: "Check if AllowGroups config exists in sshd_config"
-      shell: cat {{ sshd_config }} | grep AllowGroups
-      register: allowgroups
-      ignore_errors: true
-      when:
-        - ssh_group is defined
-        - group.rc == 0
-    - name: "Add group to AllowGroups in SSH configuration, if group found"
-      ansible.builtin.lineinfile:
-        path: "{{ sshd_config }}"
-        insertafter: "EOF"
-        line: 'AllowGroups {{ ssh_group }}'
-        state: present
-        validate: 'sshd -T -f %s'
-        mode: 0600
-      notify: "Restart SSH Daemon"
-      when:
-        - ssh_group is defined
-        - group.rc == 0
-        - allowgroups.rc != 0
-    - name: "Append group to AllowGroups in SSH configuration, if group found"
-      ansible.builtin.lineinfile:
-        path: "{{ sshd_config }}"
-        regexp: "^AllowGroups"
-        line: '{{ allowgroups.stdout }} {{ ssh_group }}'
-        state: present
-        validate: 'sshd -T -f %s'
-        mode: 0600
-      notify: "Restart SSH Daemon"
-      when:
-        - ssh_group is defined
-        - group.rc == 0
-        - allowgroups.rc == 0
-        - ssh_group|string not in allowgroups.stdout
+#- name: "Add group to AllowedGroups in SSH configuration"
+#  block:
+#    - name: "Check for groups existence"
+#      shell: getent group {{ ssh_group }}
+#      register: group
+#      when: ssh_group is defined
+#      ignore_errors: true
+#    - name: "Check if AllowGroups config exists in sshd_config"
+#      shell: cat {{ sshd_config }} | grep AllowGroups
+#      register: allowgroups
+#      ignore_errors: true
+#      when:
+#        - ssh_group is defined
+#        - group.rc == 0
+#    - name: "Add group to AllowGroups in SSH configuration, if group found"
+#      ansible.builtin.lineinfile:
+#        path: "{{ sshd_config }}"
+#        insertafter: "EOF"
+#        line: 'AllowGroups {{ ssh_group }}'
+#        state: present
+#        validate: 'sshd -T -f %s'
+#        mode: 0600
+#      notify: "Restart SSH Daemon"
+#      when:
+#        - ssh_group is defined
+#        - group.rc == 0
+#        - allowgroups.rc != 0
+#    - name: "Append group to AllowGroups in SSH configuration, if group found"
+#      ansible.builtin.lineinfile:
+#        path: "{{ sshd_config }}"
+#        regexp: "^AllowGroups"
+#        line: '{{ allowgroups.stdout }} {{ ssh_group }}'
+#        state: present
+#        validate: 'sshd -T -f %s'
+#        mode: 0600
+#      notify: "Restart SSH Daemon"
+#      when:
+#        - ssh_group is defined
+#        - group.rc == 0
+#        - allowgroups.rc == 0
+#        - ssh_group|string not in allowgroups.stdout
