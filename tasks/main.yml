@@ -76,44 +76,44 @@
   when:
     - not result.stat.exists
 
-#- name: "Check for DSA Host key"
-#  ansible.builtin.stat:
-#    path: /etc/ssh/ssh_host_dsa_key
-#  register: result
+- name: "Check for DSA Host key"
+  ansible.builtin.stat:
+    path: /etc/ssh/ssh_host_dsa_key
+  register: result
 
-#- name: "Generating DSA host key"
-#  ansible.builtin.command: ssh-keygen -q -t dsa -f /etc/ssh/ssh_host_dsa_key -C "" -N ""
-#  args:
-#    creates: /etc/ssh/ssh_host_dsa_key
-#  when:
-#    - not result.stat.exists
+- name: "Generating DSA host key"
+  ansible.builtin.command: ssh-keygen -q -t dsa -f /etc/ssh/ssh_host_dsa_key -C "" -N ""
+  args:
+    creates: /etc/ssh/ssh_host_dsa_key
+  when:
+    - not result.stat.exists
 
-#- name: "Check for ECDSA Host key"
-#  ansible.builtin.stat:
-#    path: /etc/ssh/ssh_host_ecdsa_key
-#  register: result
+- name: "Check for ECDSA Host key"
+  ansible.builtin.stat:
+    path: /etc/ssh/ssh_host_ecdsa_key
+  register: result
 
-#- name: "Generating ECDSA host key"
-#  ansible.builtin.command: ssh-keygen -q -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -C "" -N ""
-#  args:
-#    creates: /etc/ssh/ssh_host_ecdsa_key
-#  when:
-#    - not result.stat.exists
+- name: "Generating ECDSA host key"
+  ansible.builtin.command: ssh-keygen -q -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -C "" -N ""
+  args:
+    creates: /etc/ssh/ssh_host_ecdsa_key
+  when:
+    - not result.stat.exists
 
-#- name: "Check for ED25519 Host key (OpenSSH 6.7+)"
-#  ansible.builtin.stat:
-#    path: /etc/ssh/ssh_host_ed25519_key
-#  register: result
-#  when:
-#    - ssh_version is ansible.builtin.version('6.7', '>=')
+- name: "Check for ED25519 Host key (OpenSSH 6.7+)"
+  ansible.builtin.stat:
+    path: /etc/ssh/ssh_host_ed25519_key
+  register: result
+  when:
+    - ssh_version is ansible.builtin.version('6.7', '>=')
 
-#- name: "Generating ED25519 host key (OpenSSH 6.7+)"
-#  ansible.builtin.command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
-#  args:
-#    creates: /etc/ssh/ssh_host_ed25519_key
-#  when:
-#    - not result.stat.exists
-#    - ssh_version is ansible.builtin.version('6.7', '>=')
+- name: "Generating ED25519 host key (OpenSSH 6.7+)"
+  ansible.builtin.command: ssh-keygen -q -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -C "" -N ""
+  args:
+    creates: /etc/ssh/ssh_host_ed25519_key
+  when:
+    - not result.stat.exists
+    - ssh_version is ansible.builtin.version('6.7', '>=')
 
 #- name: "Collect SHA256 hash of sshd_config file"
 #  ansible.builtin.stat:
