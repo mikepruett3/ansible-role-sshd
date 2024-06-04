@@ -259,81 +259,83 @@
     - "'jump_servers' in group_names"
 #  notify: "Restart SSH Daemon"
 
-#- name: "Check for issue.j2 template file"
-#  ansible.builtin.stat:
-#    path: "{{ playbook_dir }}/custom/issue.j2"
-#  delegate_to: localhost
-#  register: issue_template
+- name: "Check for issue.j2 template file"
+  ansible.builtin.stat:
+    path: "{{ playbook_dir }}/custom/issue.j2"
+  delegate_to: localhost
+  register: issue_template
 
-#- name: "Configure Login Banners"
-#  block:
-#    - name: "Configure Console Login Banner"
-#      ansible.builtin.template:
-#        src: "{{ playbook_dir }}/custom/issue.j2"
-#        dest: "{{ banner_console }}"
-#
-#    - name: "Configure Remote Login Banner"
-#      ansible.builtin.template:
-#        src: "{{ playbook_dir }}/custom/issue.j2"
-#        dest: "{{ banner_remote }}"
-#
-#    - name: "Update SSH configuration to include Login Banners"
-#      ansible.builtin.lineinfile:
-#        dest: "{{ sshd_config }}"
-#        regexp: "^Banner"
-#        line: "Banner {{ banner_remote }}"
-#        state: present
-#        validate: 'sshd -T -f %s'
-#        mode: 0600
-#      notify: "Restart SSH Daemon"
-#  when:
-#    - issue_template.stat.exists
+- name: "Configure Console Login Banner"
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/custom/issue.j2"
+    dest: "{{ banner_console }}"
+  when:
+    - issue_template.stat.exists
+
+- name: "Configure Remote Login Banner"
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/custom/issue.j2"
+    dest: "{{ banner_remote }}"
+  when:
+    - issue_template.stat.exists
+
+- name: "Update SSH configuration to include Login Banners"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "^Banner"
+    line: "Banner {{ banner_remote }}"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0600
+  #notify: "Restart SSH Daemon"
+  when:
+    - issue_template.stat.exists
 
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/security_hardening/using-the-system-wide-cryptographic-policies_security-hardening#examples-of-opting-out-of-system-wide-crypto-policies_using-the-system-wide-cryptographic-policies
-#- name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
-#  ansible.builtin.lineinfile:
-#    dest: /etc/sysconfig/sshd
-#    regexp: "^ CRYPTO_POLICY"
-#    line: "CRYPTO_POLICY="
-#    state: present
-#    mode: 0600
-#  notify: "Restart SSH Daemon"
-#  when:
-#    - ansible_facts['os_family'] == 'RedHat'
-#    - ansible_facts['distribution_major_version'] == '8'
+- name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
+  ansible.builtin.lineinfile:
+    dest: /etc/sysconfig/sshd
+    regexp: "^ CRYPTO_POLICY"
+    line: "CRYPTO_POLICY="
+    state: present
+    mode: 0600
+  #notify: "Restart SSH Daemon"
+  when:
+    - ansible_facts['os_family'] == 'RedHat'
+    - ansible_facts['distribution_major_version'] == '8'
 
-#- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 6.7+)"
-#  ansible.builtin.set_fact:
-#    kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
-#    ciphers: "aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
-#    macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
-#  when:
-#    - ssh_version is ansible.builtin.version('6.7', '>=')
+- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 6.7+)"
+  ansible.builtin.set_fact:
+    kex_algorithms: "curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256"
+    ciphers: "aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr"
+    macs: "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com"
+  when:
+    - ssh_version is ansible.builtin.version('6.7', '>=')
 
-#- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 5.3)"
-#  ansible.builtin.set_fact:
-#    kex_algorithms: "diffie-hellman-group-exchange-sha256"
-#    ciphers: "aes256-ctr,aes192-ctr,aes128-ctr"
-#    macs: "hmac-sha2-512,hmac-sha2-256"
-#  when:
-#    - ssh_version is ansible.builtin.version('5.4', '<=')
+- name: "Define KexAlgorithms, Ciphers & MAC's (OpenSSH 5.3)"
+  ansible.builtin.set_fact:
+    kex_algorithms: "diffie-hellman-group-exchange-sha256"
+    ciphers: "aes256-ctr,aes192-ctr,aes128-ctr"
+    macs: "hmac-sha2-512,hmac-sha2-256"
+  when:
+    - ssh_version is ansible.builtin.version('5.4', '<=')
 
-#- name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
-#  ansible.builtin.lineinfile:
-#    dest: "{{ sshd_config }}"
-#    regexp: "{{ item.regexp }}"
-#    line: "{{ item.line }}"
-#    state: present
-#    validate: 'sshd -T -f %s'
-#    mode: 0600
-#  with_items:
-#    - regexp: "^KexAlgorithms"
-#      line: "KexAlgorithms {{ kex_algorithms }}"
-#    - regexp: "^Ciphers"
-#      line: "Ciphers {{ ciphers }}"
-#    - regexp: "^MACs"
-#      line: "MACs {{ macs }}"
-#  notify: "Restart SSH Daemon"
+- name: "Update KexAlgorithms, Ciphers & MAC's in SSH configuration"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0600
+  with_items:
+    - regexp: "^KexAlgorithms"
+      line: "KexAlgorithms {{ kex_algorithms }}"
+    - regexp: "^Ciphers"
+      line: "Ciphers {{ ciphers }}"
+    - regexp: "^MACs"
+      line: "MACs {{ macs }}"
+  notify: "Restart SSH Daemon"
 
 #- name: "Add group to AllowedGroups in SSH configuration"
 #  block:
