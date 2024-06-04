@@ -295,7 +295,7 @@
 - name: "Opt-out of Crypto Policy in /etc/sysconfig/sshd (RHEL8)"
   ansible.builtin.lineinfile:
     dest: /etc/sysconfig/sshd
-    regexp: "^ CRYPTO_POLICY"
+    regexp: "^#.CRYPTO_POLICY="
     line: "CRYPTO_POLICY="
     state: present
     mode: 0600
