@@ -150,26 +150,27 @@
 #    - ansible_facts['distribution_major_version'] == '8'
 #    - config_file.stat.checksum != "f58c5a5cabba4ce26d7f71c78c72be93dbc6bd00156e0688af2096bd4d83dba1"
 
-#- name: "Change order of HostKeys in SSH configuration (OpenSSH 6.7+)"
-#  block:
-#    - name: "Delete ED25519 HostKey from bottom of list"
-#      ansible.builtin.lineinfile:
-#        dest: "{{ sshd_config }}"
-#        regexp: "^HostKey /etc/ssh/ssh_host_ed25519_key"
-#        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
-#        state: absent
-#        validate: 'sshd -T -f %s'
-#        mode: 0644
-#    - name: "Insert ED25519 key above RSA Key"
-#      ansible.builtin.lineinfile:
-#        dest: "{{ sshd_config }}"
-#        line: "HostKey /etc/ssh/ssh_host_ed25519_key"
-#        insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
-#        state: present
-#        validate: 'sshd -T -f %s'
-#        mode: 0644
-#  when:
-#    - ssh_version is ansible.builtin.version('6.7', '>=')
+- name: "Delete ED25519 HostKey from bottom of list (OpenSSH 6.7+)"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "^HostKey /etc/ssh/ssh_host_ed25519_key"
+    line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+    state: absent
+    validate: 'sshd -T -f %s'
+    mode: 0644
+  when:
+    - ssh_version is ansible.builtin.version('6.7', '>=')
+
+- name: "Insert ED25519 key above RSA Key (OpenSSH 6.7+)"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    line: "HostKey /etc/ssh/ssh_host_ed25519_key"
+    insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0644
+  when:
+    - ssh_version is ansible.builtin.version('6.7', '>=')
 
 #- name: "Enable RSA & ECDSA HostKeys in SSH configuration (OpenSSH 5.3)"
 #  block:
