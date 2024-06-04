@@ -194,69 +194,69 @@
   when:
     - ssh_version is ansible.builtin.version('5.4', '<=')
 
-#- name: "Update SSH configuration to be more secure"
-#  ansible.builtin.lineinfile:
-#    dest: "{{ sshd_config }}"
-#    regexp: "{{ item.regexp }}"
-#    line: "{{ item.line }}"
-#    state: present
-#    validate: 'sshd -T -f %s'
-#    mode: 0600
-#    #backup: yes
-#  with_items:
-#    - regexp: "^PasswordAuthentication"
-#      line: "PasswordAuthentication {{ password_authentication }}"
-#    - regexp: "^PubkeyAuthentication"
-#      line: "PubkeyAuthentication {{ public_key_authentication }}"
-#    - regexp: "^PermitRootLogin"
-#      line: "PermitRootLogin {{ permit_root_login }}"
-#    - regexp: "^#PermitUserEnvironment"
-#      line: "PermitUserEnvironment {{ permit_userenv }}"
-#    - regexp: "^Port"
-#      line: "Port {{ ssh_port }}"
-#    - regexp: "^UseDNS"
-#      line: "UseDNS {{ use_dns }}"
-#    - regexp: "^IgnoreRhosts"
-#      line: "IgnoreRhosts {{ ignore_rhosts }}"
-#    - regexp: "^PermitEmptyPasswords"
-#      line: "PermitEmptyPasswords {{ permit_empty_password }}"
-#    - regexp: "^ChallengeResponseAuthentication"
-#      line: "ChallengeResponseAuthentication {{ challenge_response_auth }}"
-#    - regexp: "^GSSAPIAuthentication"
-#      line: "GSSAPIAuthentication {{ gss_api_authentication }}"
-#    - regexp: "^X11Forwarding"
-#      line: "X11Forwarding {{ x11_forwarding }}"
-#    - regexp: "^ClientAliveInterval"
-#      line: "ClientAliveInterval {{ client_alive_int }}"
-#    - regexp: "^ClientAliveCountMax"
-#      line: "ClientAliveCountMax {{ client_alive_max }}"
-#    - regexp: "^LoginGraceTime"
-#      line: "LoginGraceTime {{ login_grace_time }}"
-#    - regexp: "^MaxAuthTries"
-#      line: "MaxAuthTries {{ max_auth_tries }}"
-#    - regexp: "^MaxSessions"
-#      line: "MaxSessions {{ max_sessions }}"
-#    - regexp: "^MaxStartups"
-#      line: "MaxStartups {{ max_startups }}"
-#    - regexp: "^#LogLevel"
-#      line: "LogLevel {{ log_level }}"
-#    - regexp: "^Subsystem"
-#      line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
-#  notify: "Restart SSH Daemon"
+- name: "Update SSH configuration to be more secure"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0600
+    #backup: yes
+  with_items:
+    - regexp: "^PasswordAuthentication"
+      line: "PasswordAuthentication {{ password_authentication }}"
+    - regexp: "^PubkeyAuthentication"
+      line: "PubkeyAuthentication {{ public_key_authentication }}"
+    - regexp: "^PermitRootLogin"
+      line: "PermitRootLogin {{ permit_root_login }}"
+    - regexp: "^#PermitUserEnvironment"
+      line: "PermitUserEnvironment {{ permit_userenv }}"
+    - regexp: "^Port"
+      line: "Port {{ ssh_port }}"
+    - regexp: "^UseDNS"
+      line: "UseDNS {{ use_dns }}"
+    - regexp: "^IgnoreRhosts"
+      line: "IgnoreRhosts {{ ignore_rhosts }}"
+    - regexp: "^PermitEmptyPasswords"
+      line: "PermitEmptyPasswords {{ permit_empty_password }}"
+    - regexp: "^ChallengeResponseAuthentication"
+      line: "ChallengeResponseAuthentication {{ challenge_response_auth }}"
+    - regexp: "^GSSAPIAuthentication"
+      line: "GSSAPIAuthentication {{ gss_api_authentication }}"
+    - regexp: "^X11Forwarding"
+      line: "X11Forwarding {{ x11_forwarding }}"
+    - regexp: "^ClientAliveInterval"
+      line: "ClientAliveInterval {{ client_alive_int }}"
+    - regexp: "^ClientAliveCountMax"
+      line: "ClientAliveCountMax {{ client_alive_max }}"
+    - regexp: "^LoginGraceTime"
+      line: "LoginGraceTime {{ login_grace_time }}"
+    - regexp: "^MaxAuthTries"
+      line: "MaxAuthTries {{ max_auth_tries }}"
+    - regexp: "^MaxSessions"
+      line: "MaxSessions {{ max_sessions }}"
+    - regexp: "^MaxStartups"
+      line: "MaxStartups {{ max_startups }}"
+    - regexp: "^#LogLevel"
+      line: "LogLevel {{ log_level }}"
+    - regexp: "^Subsystem"
+      line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
+  #notify: "Restart SSH Daemon"
 
-#- name: "Add AllowTcpForwarding setting in SSH configuration for jump servers"
-#  ansible.builtin.lineinfile:
-#    dest: "{{ sshd_config }}"
-#    regexp: "{{ item.regexp }}"
-#    line: "{{ item.line }}"
-#    state: present
-#    validate: 'sshd -T -f %s'
-#    mode: 0600
-#  with_items:
-#    - regexp: "^#AllowTcpForwarding"
-#      line: "AllowTcpForwarding yes"
-#  when:
-#    - "'jump_servers' in group_names"
+- name: "Add AllowTcpForwarding setting in SSH configuration for jump servers"
+  ansible.builtin.lineinfile:
+    dest: "{{ sshd_config }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: 0600
+  with_items:
+    - regexp: "^#AllowTcpForwarding"
+      line: "AllowTcpForwarding yes"
+  when:
+    - "'jump_servers' in group_names"
 #  notify: "Restart SSH Daemon"
 
 #- name: "Check for issue.j2 template file"
