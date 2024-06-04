@@ -37,32 +37,32 @@
   when:
     - ansible_facts['os_family'] == 'Debian'
 
-#- name: "Update SSH daemon (yum)"
-#  ansible.builtin.yum:
-#    name: "{{ ssh_package }}"
-#    state: latest
-#  when:
-#    - ansible_facts['pkg_mgr'] == 'yum'
+- name: "Update SSH daemon (yum)"
+  ansible.builtin.yum:
+    name: "{{ ssh_package }}"
+    state: latest
+  when:
+    - ansible_facts['pkg_mgr'] == 'yum'
 
-#- name: "Update SSH daemon (dnf)"
-#  ansible.builtin.dnf:
-#    name: "{{ ssh_package }}"
-#    state: latest
-#    disable_gpg_check: yes
-#  when:
-#    - ansible_facts['pkg_mgr'] == 'dnf'
+- name: "Update SSH daemon (dnf)"
+  ansible.builtin.dnf:
+    name: "{{ ssh_package }}"
+    state: latest
+    disable_gpg_check: yes
+  when:
+    - ansible_facts['pkg_mgr'] == 'dnf'
 
-#- name: "Update SSH daemon (apt)"
-#  ansible.builtin.apt:
-#    name: "{{ ssh_package }}"
-#    state: latest
-#  when:
-#    - ansible_facts['pkg_mgr'] == 'yum'
+- name: "Update SSH daemon (apt)"
+  ansible.builtin.apt:
+    name: "{{ ssh_package }}"
+    state: latest
+  when:
+    - ansible_facts['pkg_mgr'] == 'yum'
 
-##- name: "Ensure SSH daemon is running"
-##  ansible.builtin.service:
-##    name: "{{ ssh_daemon }}"
-##    state: started
+#- name: "Ensure SSH daemon is running"
+#  ansible.builtin.service:
+#    name: "{{ ssh_daemon }}"
+#    state: started
 
 #- name: "Check for RSA Host key"
 #  ansible.builtin.stat:
