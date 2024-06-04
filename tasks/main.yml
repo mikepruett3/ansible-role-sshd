@@ -18,6 +18,12 @@
   when:
     - ansible_facts['os_family'] == 'RedHat'
 
+- name: "Set the OpenSSH Server installed package version (RedHat)"
+  ansible.builtin.set_fact:
+    ssh_version: "{{ result.stdout }}"
+  when:
+    - ansible_facts['os_family'] == 'RedHat'
+
 - name: "Gather the OpenSSH Server installed version (Debian)"
   ansible.builtin.shell:
     cmd: ssh -V 2>&1 | cut -d " " -f 1 | cut -d "_" -f 2
@@ -25,9 +31,11 @@
   when:
     - ansible_facts['os_family'] == 'Debian'
 
-- name: "Get the OpenSSH Server installed package version"
+- name: "Set the OpenSSH Server installed package version (Debian)"
   ansible.builtin.set_fact:
     ssh_version: "{{ result.stdout }}"
+  when:
+    - ansible_facts['os_family'] == 'Debian'
 
 #- name: "Update SSH daemon (yum)"
 #  ansible.builtin.yum:
