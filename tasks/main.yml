@@ -51,7 +51,7 @@
     name: "{{ ssh_package }}"
     state: latest
   when:
-    - ansible_facts['pkg_mgr'] == 'yum'
+    - ansible_facts['pkg_mgr'] == 'apt'
 
 - name: "Check for RSA Host key"
   ansible.builtin.stat:
