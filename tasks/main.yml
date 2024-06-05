@@ -5,12 +5,6 @@
   ansible.builtin.include_vars:
     file: "{{ ansible_os_family }}.yaml"
 
-#- name: "Gather the package facts"
-#  ansible.builtin.package_facts:
-#    manager: auto
-#  when:
-#    - ansible_facts.packages is not defined
-
 - name: "Gather the OpenSSH Server installed version (RedHat)"
   ansible.builtin.shell:
     cmd: ssh -V 2>&1 | cut -d "," -f 1 | cut -d "_" -f 2
@@ -58,11 +52,6 @@
     state: latest
   when:
     - ansible_facts['pkg_mgr'] == 'yum'
-
-#- name: "Ensure SSH daemon is running"
-#  ansible.builtin.service:
-#    name: "{{ ssh_daemon }}"
-#    state: started
 
 - name: "Check for RSA Host key"
   ansible.builtin.stat:
@@ -157,7 +146,7 @@
     line: "HostKey /etc/ssh/ssh_host_ed25519_key"
     state: absent
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: '0640'
   when:
     - ssh_version is ansible.builtin.version('6.7', '>=')
 
@@ -168,7 +157,7 @@
     insertbefore: "HostKey /etc/ssh/ssh_host_rsa_key"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: '0640'
   when:
     - ssh_version is ansible.builtin.version('6.7', '>=')
 
@@ -179,7 +168,7 @@
     line: "HostKey /etc/ssh/ssh_host_rsa_key"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: '0640'
   when:
     - ssh_version is ansible.builtin.version('5.4', '<=')
 
@@ -190,7 +179,7 @@
     insertafter: "HostKey /etc/ssh/ssh_host_rsa_key"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0644
+    mode: '0640'
   when:
     - ssh_version is ansible.builtin.version('5.4', '<=')
 
@@ -201,8 +190,7 @@
     line: "{{ item.line }}"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0600
-    #backup: yes
+    mode: '0600'
   with_items:
     - regexp: "^PasswordAuthentication"
       line: "PasswordAuthentication {{ password_authentication }}"
@@ -242,7 +230,6 @@
       line: "LogLevel {{ log_level }}"
     - regexp: "^Subsystem"
       line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
-  #notify: "Restart SSH Daemon"
 
 - name: "Add AllowTcpForwarding setting in SSH configuration for jump servers"
   ansible.builtin.lineinfile:
@@ -251,13 +238,12 @@
     line: "{{ item.line }}"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0600
+    mode: '0600'
   with_items:
     - regexp: "^#AllowTcpForwarding"
       line: "AllowTcpForwarding yes"
   when:
     - "'jump_servers' in group_names"
-#  notify: "Restart SSH Daemon"
 
 - name: "Check for issue.j2 template file"
   ansible.builtin.stat:
@@ -286,8 +272,7 @@
     line: "Banner {{ banner_remote }}"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0600
-  #notify: "Restart SSH Daemon"
+    mode: '0600'
   when:
     - issue_template.stat.exists
 
@@ -298,8 +283,7 @@
     regexp: "^#.CRYPTO_POLICY="
     line: "CRYPTO_POLICY="
     state: present
-    mode: 0600
-  #notify: "Restart SSH Daemon"
+    mode: '0600'
   when:
     - ansible_facts['os_family'] == 'RedHat'
     - ansible_facts['distribution_major_version'] == '8'
@@ -327,7 +311,7 @@
     line: "{{ item.line }}"
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0600
+    mode: '0600'
   with_items:
     - regexp: "^KexAlgorithms"
       line: "KexAlgorithms {{ kex_algorithms }}"
@@ -335,7 +319,6 @@
       line: "Ciphers {{ ciphers }}"
     - regexp: "^MACs"
       line: "MACs {{ macs }}"
-  #notify: "Restart SSH Daemon"
 
 # Add group to AllowedGroups in SSH configuration
 - name: "Check for groups existence"
@@ -368,7 +351,7 @@
     line: 'AllowGroups {{ ssh_group }}'
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0600
+    mode: '0600'
   when:
     - allowed_groups is not defined
 
@@ -379,7 +362,12 @@
     line: 'AllowGroups {{ ssh_group }} {{ allowed_groups }}'
     state: present
     validate: 'sshd -T -f %s'
-    mode: 0600
+    mode: '0600'
   when:
     - allowed_groups is defined
     - allowed_groups is not search(ssh_group)
+
+- name: "Restart SSH daemon"
+  ansible.builtin.service:
+    name: "{{ ssh_daemon }}"
+    state: restarted
