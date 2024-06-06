@@ -229,17 +229,14 @@
     - regexp: "^Subsystem"
       line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
 
-- name: "Update SSH configuration to be more secure (OpenSSH 6.7+)"
+- name: "Update SSH configuration MaxStartups directive (OpenSSH 6.7+)"
   ansible.builtin.lineinfile:
     dest: "{{ sshd_config }}"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
+    regexp: '^MaxStartups'
+    line: 'MaxStartups {{ max_startups }}'
     state: present
     validate: 'sshd -T -f %s'
     mode: '0600'
-  with_items:
-    - regexp: "^MaxStartups"
-      line: "MaxStartups {{ max_startups }}"
   when:
       - ssh_version is ansible.builtin.version('6.7', '>=')
 
