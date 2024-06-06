@@ -224,21 +224,23 @@
       line: "MaxAuthTries {{ max_auth_tries }}"
     - regexp: "^MaxSessions"
       line: "MaxSessions {{ max_sessions }}"
+    - regexp: '^MaxStartups'
+      line: 'MaxStartups {{ max_startups }}'
     #- regexp: "^#LogLevel"
     #  line: "LogLevel {{ log_level }}"
     - regexp: "^Subsystem"
       line: "Subsystem	sftp	{{ sftp_server }} -f {{ log_facility }} -l INFO"
 
-- name: "Update SSH configuration MaxStartups directive (OpenSSH 6.7+)"
-  ansible.builtin.lineinfile:
-    dest: "{{ sshd_config }}"
-    regexp: '^MaxStartups'
-    line: 'MaxStartups {{ max_startups }}'
-    state: present
-    validate: 'sshd -T -f %s'
-    mode: '0600'
-  when:
-      - ssh_version is ansible.builtin.version('6.7', '>=')
+#- name: "Update SSH configuration MaxStartups directive (OpenSSH 6.7+)"
+#  ansible.builtin.lineinfile:
+#    dest: "{{ sshd_config }}"
+#    regexp: '^MaxStartups'
+#    line: 'MaxStartups {{ max_startups }}'
+#    state: present
+#    validate: 'sshd -T -f %s'
+#    mode: '0600'
+#  when:
+#      - ssh_version is ansible.builtin.version('6.7', '>=')
 
 - name: "Add AllowTcpForwarding setting in SSH configuration for jump servers"
   ansible.builtin.lineinfile:
