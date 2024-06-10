@@ -371,7 +371,7 @@
   ansible.builtin.lineinfile:
     path: "{{ sshd_config }}"
     regexp: '^AllowGroups.'
-    line: 'AllowGroups {{ ssh_group }} {{ allowed_groups }}'
+    line: 'AllowGroups {{ allowed_groups }} {{ ssh_group }}'
     state: present
     validate: 'sshd -T -f %s'
     mode: '0600'
