@@ -26,14 +26,40 @@
   ansible.builtin.lineinfile:
     path: "{{ sshd_config }}"
     regexp: '^AllowGroups.'
+    line: 'AllowGroups {{ ssh_group }}'
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: '0600'
+  when:
+    - allowed_groups is not defined
+    - ssh_group is not search(" ")
+
+- name: "Add group to AllowGroups in SSH configuration (spaces)"
+  ansible.builtin.lineinfile:
+    path: "{{ sshd_config }}"
+    regexp: '^AllowGroups.'
     line: 'AllowGroups "{{ ssh_group }}"'
     state: present
     validate: 'sshd -T -f %s'
     mode: '0600'
   when:
     - allowed_groups is not defined
+    - ssh_group is search(" ")
 
 - name: "Append group to AllowGroups in SSH configuration, if group found"
+  ansible.builtin.lineinfile:
+    path: "{{ sshd_config }}"
+    regexp: '^AllowGroups.'
+    line: 'AllowGroups {{ allowed_groups }} {{ ssh_group }}'
+    state: present
+    validate: 'sshd -T -f %s'
+    mode: '0600'
+  when:
+    - allowed_groups is defined
+    - allowed_groups is not search(ssh_group)
+    - ssh_group is not search(" ")
+
+- name: "Append group to AllowGroups in SSH configuration, if group found (spaces)"
   ansible.builtin.lineinfile:
     path: "{{ sshd_config }}"
     regexp: '^AllowGroups.'
@@ -44,6 +70,7 @@
   when:
     - allowed_groups is defined
     - allowed_groups is not search(ssh_group)
+    - ssh_group is search(" ")
 
 - name: "Restart SSH daemon"
   ansible.builtin.service:
