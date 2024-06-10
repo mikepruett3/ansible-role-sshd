@@ -1,6 +1,6 @@
 - name: "Check for groups existence"
   ansible.builtin.shell:
-    cmd: getent group {{ ssh_group }}
+    cmd: getent group "{{ ssh_group }}"
   ignore_errors: true
   register: result
   when:
@@ -26,7 +26,7 @@
   ansible.builtin.lineinfile:
     path: "{{ sshd_config }}"
     regexp: '^AllowGroups.'
-    line: 'AllowGroups {{ ssh_group }}'
+    line: 'AllowGroups "{{ ssh_group }}"'
     state: present
     validate: 'sshd -T -f %s'
     mode: '0600'
@@ -37,7 +37,7 @@
   ansible.builtin.lineinfile:
     path: "{{ sshd_config }}"
     regexp: '^AllowGroups.'
-    line: 'AllowGroups {{ allowed_groups }} {{ ssh_group }}'
+    line: 'AllowGroups {{ allowed_groups }} "{{ ssh_group }}"'
     state: present
     validate: 'sshd -T -f %s'
     mode: '0600'
