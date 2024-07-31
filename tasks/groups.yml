@@ -6,11 +6,11 @@
   when:
     - ssh_group is defined
 
-- name: "Set fact for Group if not exist"
+- name: "Set fact for Group if exist"
   ansible.builtin.set_fact:
-    group_exists: false
+    group_exists: true
   when:
-    - result.rc != 0
+    - result.rc == 0
 
 - name: "Check if AllowGroups config exists in sshd_config"
   ansible.builtin.shell:
@@ -18,13 +18,13 @@
   #ignore_errors: true
   register: result
   when:
-    - not group_exists | bool
+    - group_exists | bool
 
 - name: "Set fact for AllowedGroups"
   ansible.builtin.set_fact:
     allowed_groups: "{{ result.stdout }}"
   when:
-    - not group_exists | bool
+    - result.rc == 0
 
 - name: "Add group to AllowGroups in SSH configuration"
   ansible.builtin.lineinfile:
