@@ -337,6 +337,7 @@
     cmd: getent group "{{ ssh_group }}"
   #ignore_errors: true
   register: result
+  failed_when: result.rc >=3
   when:
     - ssh_group is defined
 
@@ -345,6 +346,7 @@
     cmd: cat {{ sshd_config }} | grep AllowGroups | cut -d ' ' -f 2-
   #ignore_errors: true
   register: result
+  failed_when: result.rc >=3
   when:
     - ssh_group is defined
     - result.rc == 0
