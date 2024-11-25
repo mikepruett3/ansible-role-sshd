@@ -332,14 +332,14 @@
       line: "MACs {{ macs }}"
 
 # Add group to AllowedGroups in SSH configuration
-- name: "Check for groups existence"
-  ansible.builtin.shell:
-    cmd: getent group "{{ ssh_group }}"
-  ignore_errors: true
-  register: result
-  #failed_when: result.rc >=3
-  when:
-    - ssh_group is defined
+#- name: "Check for groups existence"
+#  ansible.builtin.shell:
+#    cmd: getent group "{{ ssh_group }}"
+#  ignore_errors: true
+#  register: result
+#  #failed_when: result.rc >=3
+#  when:
+#    - ssh_group is defined
 
 - name: "Check if AllowGroups config exists in sshd_config"
   ansible.builtin.shell:
@@ -349,7 +349,7 @@
   #failed_when: result.rc >=3
   when:
     - ssh_group is defined
-    - result.rc == 0
+    #- result.rc == 0
 
 - name: "Set fact for AllowedGroups"
   ansible.builtin.set_fact:
