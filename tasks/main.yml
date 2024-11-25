@@ -335,18 +335,18 @@
 - name: "Check for groups existence"
   ansible.builtin.shell:
     cmd: getent group "{{ ssh_group }}"
-  #ignore_errors: true
+  ignore_errors: true
   register: result
-  failed_when: result.rc >=3
+  #failed_when: result.rc >=3
   when:
     - ssh_group is defined
 
 - name: "Check if AllowGroups config exists in sshd_config"
   ansible.builtin.shell:
     cmd: cat {{ sshd_config }} | grep AllowGroups | cut -d ' ' -f 2-
-  #ignore_errors: true
+  ignore_errors: true
   register: result
-  failed_when: result.rc >=3
+  #failed_when: result.rc >=3
   when:
     - ssh_group is defined
     - result.rc == 0
