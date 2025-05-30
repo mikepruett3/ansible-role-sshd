@@ -324,12 +324,12 @@
     validate: 'sshd -T -f %s'
     mode: '0600'
   with_items:
-    - regexp: "^KexAlgorithms"
-      line: "KexAlgorithms {{ kex_algorithms }}"
-    - regexp: "^Ciphers"
-      line: "Ciphers {{ ciphers }}"
-    - regexp: "^MACs"
-      line: "MACs {{ macs }}"
+    - regexp: '^^[Kk][Ee][Xx][Aa][Ll][Gg][Oo][Rr][Ii][Tt][Hh][Mm][Ss]'
+      line: 'KexAlgorithms {{ kex_algorithms }}'
+    - regexp: '^[Cc][Ii][Pp][Hh][Ee][Rr][Ss]'
+      line: 'Ciphers {{ ciphers }}'
+    - regexp: '^[Mm][Aa][Cc][Ss]'
+      line: 'MACs {{ macs }}'
 
 # Add group to AllowedGroups in SSH configuration
 - name: "Check for groups existence"
